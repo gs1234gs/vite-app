@@ -1,0 +1,1 @@
+export const SYS_API_PREFIX = '/api/sys-api';

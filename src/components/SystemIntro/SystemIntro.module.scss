@@ -1,0 +1,123 @@
+// SystemIntro.module.scss
+
+$primary: #0066ff;
+$gradient-bg: radial-gradient(circle at top right, #f8fbff, #f0f7ff);
+$card-bg: linear-gradient(145deg, #ffffff, #f9fcff);
+
+.container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background: $gradient-bg;
+  min-height: 100vh;
+}
+
+.card-wrapper {
+  max-width: 1000px;
+  width: 100%;
+  background: $card-bg;
+  border-radius: 24px;
+  padding: 48px;
+  box-shadow: 0 16px 50px rgba(0, 46, 109, 0.12);
+  border: 1px solid rgba(0, 99, 220, 0.08);
+  position: relative;
+
+  @media (max-width: 768px) {
+    padding: 24px;
+    border-radius: 20px;
+  }
+}
+
+.title {
+  text-align: center;
+  font-weight: 800;
+  margin-bottom: 24px;
+  background: linear-gradient(90deg, $primary, #00a3ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2.6rem;
+  letter-spacing: -0.5px;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+}
+
+.divider {
+  background: linear-gradient(to right, transparent, $primary, transparent);
+  height: 3px;
+  margin: 32px 0;
+  border: none;
+  border-radius: 2px;
+}
+
+.paragraph {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #3a4555;
+  text-align: center;
+  margin: 0 auto 40px;
+  max-width: 700px;
+}
+
+.subtitle {
+  font-weight: 700;
+  color: #1a365d;
+  margin: 40px 0 24px;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &::after {
+    content: "";
+    display: inline-block;
+    width: 36px;
+    height: 4px;
+    background: linear-gradient(to right, $primary, transparent);
+    border-radius: 2px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+  }
+}
+
+.tech-grid,
+.feature-grid {
+  margin-bottom: 40px;
+}
+
+.highlight-box {
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 4px solid $primary;
+  padding: 24px;
+  border-radius: 0 16px 16px 0;
+  margin-top: 32px;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.06);
+
+  .highlight-text {
+    font-size: 1.1rem;
+    color: #2d3748;
+    font-weight: 500;
+    line-height: 1.6;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .highlight-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $primary;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+  }
+}

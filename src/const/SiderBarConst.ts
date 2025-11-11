@@ -1,0 +1,1 @@
+export const SYSTEM_MENU_BAR_CONST_KEY ='system-menu-const-key'

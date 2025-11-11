@@ -1,0 +1,5 @@
+/* 修复 Ant Design Sider 收缩按钮主题色 */
+.ant-layout-sider-trigger {
+  background-color: var(--antd-layout-sider-trigger-bg, #fff) !important;
+  color: var(--antd-layout-sider-trigger-color, #000) !important;
+}

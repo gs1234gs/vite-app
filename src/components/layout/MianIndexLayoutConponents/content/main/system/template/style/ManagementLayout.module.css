@@ -1,0 +1,19 @@
+/* 管理布局样式 */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.tableRowLight {
+  background-color: #fafafa;
+}
+
+.tableHead th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.tableHover tr:hover td {
+  background: #e6f7ff;
+}
