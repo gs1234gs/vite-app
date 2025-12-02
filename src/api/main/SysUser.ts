@@ -23,6 +23,15 @@ const findById = (id:number) =>{
     .then(res=>res)
     .catch(err=>{throw err})
 }
+
+const findSignInUserById = () =>{
+    return sendRequest({
+        url:`${SYS_USER_PREFIX}/findById`,
+        method:GET_METHOD,
+    })
+    .then(res=>res.data)
+    .catch(err=>{throw err})
+}
 const findByNoId = () =>{
     return sendRequest({
         url:`${SYS_USER_PREFIX}/findById`,
@@ -70,4 +79,4 @@ const save = (data:SysUserType) =>{
     .catch(err=>{throw err})
 }
 
-export {findPage,findById,deleteById,updateUserById,findByNoId,deleteUserByIds,save}
+export {findPage,findById,deleteById,updateUserById,findByNoId,deleteUserByIds,save,findSignInUserById}

@@ -3,7 +3,7 @@ import { HttpErrorHelper } from '../../utils/http/HttpErrorHelper';
 import { message } from 'antd';
 import type { PageType } from '../../api/type/PageType';
 import type { SysUserType } from '../../api/main/type/SysUserType';
-import { findById, findPage } from '../../api/main/SysUser';
+import { findById, findPage, findSignInUserById } from '../../api/main/SysUser';
 function useSysUser(){
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState<Error | null>(null);
@@ -45,6 +45,21 @@ function useSysUser(){
       }
     },[])
 
+       const findSignInUserByIdApi = useCallback(async () => { 
+      setLoading(true);
+      setError(null);
+      try {
+        const res : any = await findSignInUserById();
+        if(res.code === 200){
+          setLoading(false);
+        }
+        return res.data;
+      } catch (err) {
+        setError(err as Error);
+        throw err; 
+      }
+    },[])
+
     const deleteByIdApi = useCallback(async (id: number) => { 
       setLoading(true);
       setError(null);
@@ -71,7 +86,7 @@ function useSysUser(){
       const createApi = useCallback(async (data:any) => { 
       },[])
 
-    return {  loading, error,sysUserList,findPageApi ,findByIdApi,deleteByIdApi,updateByIdApi,createApi };
+    return {  loading, error,sysUserList,findPageApi ,findByIdApi,deleteByIdApi,updateByIdApi,createApi,findSignInUserByIdApi };
   
 }
 

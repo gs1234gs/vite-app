@@ -3,4 +3,11 @@ interface PageType<T>{
     pageSize:number,
     condition:T
 }
-export type {PageType}
+interface RequestCursorPage<T>{
+    lastId:number;
+    pageSize:number;
+    order:string;
+    condition:T
+}
+
+export type {PageType,RequestCursorPage}

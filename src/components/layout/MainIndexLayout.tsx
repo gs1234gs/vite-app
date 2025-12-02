@@ -1,9 +1,9 @@
 import React from 'react';
 import {  Layout } from 'antd';
-import SysMenuIndex from './MianIndexLayoutConponents/sysmenu/SysMenuIndex';
-import IndexHeader from './MianIndexLayoutConponents/header/IndexHeader';
-import ContentIndex from './MianIndexLayoutConponents/content/ContentIndex';
-import FooterIndex from './MianIndexLayoutConponents/footer/FooterIndex';
+import SysMenuIndex from './MianIndexLayoutComponents/sysmenu/SysMenuIndex';
+import IndexHeader from './MianIndexLayoutComponents/header/IndexHeader';
+import ContentIndex from './MianIndexLayoutComponents/content/ContentIndex';
+import FooterIndex from './MianIndexLayoutComponents/footer/FooterIndex';
 import { useNavigate } from "react-router-dom";
 //点击菜单
 const MainIndexLayout: React.FC = () => {

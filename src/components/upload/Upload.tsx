@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+// src/upload/UploadImage.tsx
+import React, { useEffect, useState } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
 import { Image, Upload, message } from 'antd';
 import type { UploadFile, UploadProps } from 'antd';
 
-// 这里是模拟获取后端返回路径的函数
+// 模拟上传 API（你已有）
 const uploadImageApi = async (formData: FormData) => {
   try {
     const response = await fetch('https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload', {
@@ -11,25 +12,42 @@ const uploadImageApi = async (formData: FormData) => {
       body: formData,
     });
     const data = await response.json();
-    console.log()
     if (data?.url) {
-      return data; // 假设返回的数据包含文件的 URL
-    } else {
-    //   message.error('上传失败');
-      return null;
+      return data;
     }
+    return null;
   } catch (error) {
     message.error('上传失败');
     return null;
   }
 };
 
-const UploadImage: React.FC = () => {
+interface UploadImageProps {
+  value?: string; // 外部传入的图片 URL（用于回显）
+  onChange?: (url: string | null) => void; // 通知父组件新 URL
+}
+
+const UploadImage: React.FC<UploadImageProps> = ({ value, onChange }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  // 上传前处理：将文件通过 FormData 上传
+  // 🔄 当 value 变化时（如编辑回显），同步 fileList
+  useEffect(() => {
+    if (value) {
+      setFileList([
+        {
+          uid: '-1',
+          name: 'avatar.png',
+          status: 'done',
+          url: value,
+        },
+      ]);
+    } else {
+      setFileList([]);
+    }
+  }, [value]);
+
   const handleBeforeUpload: UploadProps['beforeUpload'] = async (file) => {
     const isImage = file.type.startsWith('image/');
     if (!isImage) {
@@ -37,29 +55,25 @@ const UploadImage: React.FC = () => {
       return Upload.LIST_IGNORE;
     }
 
-    // 创建 FormData 对象并附加文件
     const formData = new FormData();
-    formData.append('file', file);  // 将文件附加到 FormData 对象
+    formData.append('file', file);
 
-    // 调用上传接口
     const response = await uploadImageApi(formData);
 
     if (response?.url) {
-      // 上传成功，更新文件列表
-      setFileList([
-        {
-          uid: file.uid,
-          name: file.name,
-          status: 'done',
-          url: response.url,  // 后端返回的文件 URL
-        },
-      ]);
+      const newFile: UploadFile = {
+        uid: file.uid,
+        name: file.name,
+        status: 'done',
+        url: response.url,
+      };
+      setFileList([newFile]);
+      onChange?.(response.url); // ✅ 通知父组件新 URL
     } else {
       message.error('上传失败');
     }
 
-    // 返回 false 以阻止默认上传行为
-    return false;
+    return false; // 阻止默认上传
   };
 
   const handlePreview = (file: UploadFile) => {
@@ -67,8 +81,13 @@ const UploadImage: React.FC = () => {
     setPreviewOpen(true);
   };
 
-  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
-    setFileList(newFileList);
+  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
+    // 如果用户点击了删除按钮
+    if (file?.status === 'removed') {
+      setFileList([]);
+      onChange?.(null); // 清空值
+    }
+    // 注意：我们主要靠 beforeUpload 控制上传，这里只处理删除
   };
 
   const uploadButton = (
@@ -81,13 +100,12 @@ const UploadImage: React.FC = () => {
   return (
     <>
       <Upload
-        // action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"  // 你可以替换为真实的后端上传接口
         listType="picture-circle"
         fileList={fileList}
         onPreview={handlePreview}
         onChange={handleChange}
-        beforeUpload={handleBeforeUpload}  // 处理上传之前的操作
-        maxCount={1}  // 限制只能上传一张图片
+        beforeUpload={handleBeforeUpload}
+        maxCount={1}
       >
         {fileList.length >= 1 ? null : uploadButton}
       </Upload>

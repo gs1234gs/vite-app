@@ -9,6 +9,7 @@ function useSignIn() {
   const [error, setError] = useState<Error | null>(null);
   const [dataResult, setDataResult] = useState<any>(null); // 根据你的接口返回类型改成具体类型
   const { sysMenuApi } = useSysMenu();
+  
   const signInApi = useCallback(async (formData: SignInType) => {
     setLoading(true);
     setError(null);
@@ -20,6 +21,7 @@ function useSignIn() {
       cacheSession.setCache(SIGN_IN_CONST_TOKEN, res.data.data)
       if (res.data.code === 200) {
         sysMenuApi();
+       
       }
       return res;
     } catch (err) {
