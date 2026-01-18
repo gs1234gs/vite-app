@@ -1,0 +1,10 @@
+import LazyLoad from "@/routes/LazyLoad";
+
+export default {
+  path: 'system/user',
+  element:  <LazyLoad
+    loader={() =>
+      import("@/components/layout/MainIndexLayoutComponents/content/main/system/UserManagement/UserManagement")
+    }
+  />
+};

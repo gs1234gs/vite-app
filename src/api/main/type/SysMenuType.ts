@@ -1,5 +1,5 @@
 export interface SysMenuType{
-    id?:number,
+    id?:string,
     name?:string,
     parentId?:number,
     sort?:number,

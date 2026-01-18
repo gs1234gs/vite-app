@@ -2,7 +2,7 @@
 import ContextTop from "./top/context/context-top"
 import ContextFooter from "./footer/context-footer"
 import styles from '../../../styles/home/header-layout.module.scss'
-import HomePageLayout from "../../../components/layout/home-page-layout"
+import HomePageLayout from "@/components/layout/home-page-layout"
 const HeaderIndex = () =>{
 
 return(

@@ -11,6 +11,10 @@ const spinnerStyle = `
     width: 100%;
   }
 `;
+
+interface LazyLoadProps {
+  loader: () => Promise<{ default: React.ComponentType<any> }>;
+}
 if (!document.getElementById("dynamic-spinner-style")) {
   const style = document.createElement("style");
   style.id = "dynamic-spinner-style";
@@ -18,10 +22,10 @@ if (!document.getElementById("dynamic-spinner-style")) {
   document.head.appendChild(style);
 }
 // 这里通过 `import()` 动态加载路径
-const LazyLoad = (modulePath: string): React.ReactElement => {
+const LazyLoad: React.FC<LazyLoadProps> = ({ loader }): React.ReactElement => {
   // 使用懒加载方式返回组件
-  const LazyComponent = lazy(() => import(/* @vite-ignore */ `${modulePath}`));
-
+  // const LazyComponent = lazy(() => import(/* @vite-ignore */ `${modulePath}`));
+ const LazyComponent = lazy(loader);
   return (
     <Suspense fallback={  <div className={spinnerStyleClass}>
         <Spin size="large" tip="加载中..." fullscreen={true}/>

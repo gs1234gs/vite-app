@@ -1,6 +1,6 @@
-import { SYSTEM_MENU_BAR_CONST_KEY } from "../const/SiderBarConst";
-import { cacheSession } from "../utils/cache";
-import mapMenusToRouters from "../utils/sider/map-menus";
+import { SYSTEM_MENU_BAR_CONST_KEY } from "@/const/SiderBarConst";
+import { cacheSession } from "@/utils/cache";
+import mapMenusToRouters from "@/utils/sider/map-menus";
 
 const reactiveRouter = () => {
  const menus = cacheSession.getCache(SYSTEM_MENU_BAR_CONST_KEY)

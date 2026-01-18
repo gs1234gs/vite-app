@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import signIn from "../../api/SignInUp/SignIn";
-import type { SignInType } from "../../types/SignInUpType";
-import useSysMenu from '../main/SysMenu';
-import { cacheSession } from '../../utils/cache';
-import { SIGN_IN_CONST_TOKEN } from '../../const/SignInConst';
+import signIn from "@/api/SignInUp/SignIn";
+import type { SignInType } from "@/types/SignInUpType";
+import useSysMenu from '@/stores/main/SysMenu';
+import { cacheSession } from '@/utils/cache';
+import { SIGN_IN_CONST_TOKEN } from '@/const/SignInConst';
 function useSignIn() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -21,7 +21,6 @@ function useSignIn() {
       cacheSession.setCache(SIGN_IN_CONST_TOKEN, res.data.data)
       if (res.data.code === 200) {
         sysMenuApi();
-       
       }
       return res;
     } catch (err) {

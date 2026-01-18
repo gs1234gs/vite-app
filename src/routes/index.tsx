@@ -1,11 +1,11 @@
 import {  createHashRouter } from "react-router-dom";
-import  LazyLoad  from "./LazyLoad";
+import  LazyLoad  from "@/routes/LazyLoad";
 // import reactiveRouter from "./ReactiveRouter";
-import MainLayoutWrapper from "./MainLayoutWrapper";
-import DynamicRoutes from "./DynamicRoutes";
+import MainLayoutWrapper from "@/routes/MainLayoutWrapper";
+import DynamicRoutes from "@/routes/DynamicRoutes";
 import React from "react";
-import SystemIntro from "../components/SystemIntro/SystemIntro.tsx";
-const System = React.lazy(() => import("../components/SystemIntro/SystemIntro.tsx"));
+// import SystemIntro from "../components/SystemIntro/SystemIntro.tsx";
+const System = React.lazy(() => import("@/components/SystemIntro/SystemIntro"));
 
 const router = createHashRouter(
   [
@@ -16,16 +16,16 @@ const router = createHashRouter(
     {
       path: "/home",
     
-      element:LazyLoad("../views/home/HomeIndex"),
+      element:<LazyLoad loader={() => import("@/views/home/HomeIndex")} />,
       children: []
 
     },{
       path:"/sign-in",
-      element:LazyLoad("../components/templates/sign-in-side/App"),
+      element:<LazyLoad loader={()=> import("@/components/templates/sign-in-side/App")}/>,
 
     },{
       path:"/sign-up",
-      element:LazyLoad("../components/templates/sign-up/SignUp"),
+      element:<LazyLoad loader={() => import("@/components/templates/sign-up/SignUp")} />,
     },
     {
       path:"/main/*",
@@ -38,8 +38,9 @@ const router = createHashRouter(
     },
     {
       path: "*",
-      element: LazyLoad("../views/NotFound/NotFound.tsx")
-    },{
+      element: <LazyLoad loader={() => import("@/views/NotFound/NotFound")}/>
+    },
+    {
       path:'/system',
       element:<System />
     }

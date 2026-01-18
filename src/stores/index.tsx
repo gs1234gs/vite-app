@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import breader from "./reduxs/bread";
+import breader from "@/stores/reduxs/bread";
 
 const store = configureStore({
   reducer: {

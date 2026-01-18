@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
-import { menuTree,findAll,findById, findAllByRoleId,save,deleteById } from '../../api/main/SysMenu';
-import { cacheSession } from '../../utils/cache';
-import { SYSTEM_MENU_BAR_CONST_KEY } from '../../const/SiderBarConst';
+import { menuTree,findAll,findById, findAllByRoleId,save,deleteById } from '@/api/main/SysMenu';
+import { cacheSession } from '@/utils/cache';
+import { SYSTEM_MENU_BAR_CONST_KEY } from '@/const/SiderBarConst';
 import { useNavigate } from 'react-router-dom';
-import { HttpErrorHelper } from '../../utils/http/HttpErrorHelper';
+import { HttpErrorHelper } from '@/utils/http/HttpErrorHelper';
 import { message } from 'antd';
-import type { SysMenuType } from '../../api/main/type/SysMenuType';
+import type { SysMenuType } from '@/api/main/type/SysMenuType';
 function useSysMenu(){
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState<Error | null>(null);
@@ -31,6 +31,7 @@ function useSysMenu(){
       const res = (await menuTree()).data.data;
       setDataSysMenu(res);
       cacheSession.setCache(SYSTEM_MENU_BAR_CONST_KEY, res);
+      //  message.success("登陆成功")
       navigate('/main/home');
       return res;
     } catch (err) {

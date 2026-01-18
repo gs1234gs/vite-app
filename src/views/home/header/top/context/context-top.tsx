@@ -1,7 +1,7 @@
 import { CommentOutlined, GlobalOutlined, SoundOutlined, UserOutlined } from '@ant-design/icons'
 import styles from '../styles/home-header-top.module.scss'
 import { Button } from 'antd'
-import router from '../../../../../routes'
+import router from '@/routes'
 
 const ContextTop =()=>{
     return(

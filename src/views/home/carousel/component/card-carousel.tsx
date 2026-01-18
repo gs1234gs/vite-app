@@ -1,4 +1,4 @@
-import HomeCarousel from './home-carousel'
+import HomeCarousel from '@/views/home/carousel/component/home-carousel'
 import CardsIndex from './home-card'
 
 const CardCarousel =()=>{

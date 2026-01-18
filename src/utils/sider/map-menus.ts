@@ -1,12 +1,12 @@
 import type { RouteObject } from "react-router-dom"
-import { cacheSession } from "../cache";
+import { cacheSession } from "@/utils/cache";
 
 const loadLocalRouters = () => { 
     //动态路由
     const localRouters : RouteObject[] = []
-    //读取ts文件
+    //读取tsx文件
     const files : Record<string, any> = import.meta.glob(
-        "@/routes/main/**/*.ts",
+        "@/routes/main/**/*.tsx",
         {
             eager: true
         }

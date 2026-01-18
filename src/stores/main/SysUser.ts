@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import { HttpErrorHelper } from '../../utils/http/HttpErrorHelper';
+import { HttpErrorHelper } from '@/utils/http/HttpErrorHelper';
 import { message } from 'antd';
-import type { PageType } from '../../api/type/PageType';
-import type { SysUserType } from '../../api/main/type/SysUserType';
-import { findById, findPage, findSignInUserById } from '../../api/main/SysUser';
+import type { PageType } from '@/api/type/PageType';
+import type { SysUserType } from '@/api/main/type/SysUserType';
+import { findById, findPage, findSignInUserById } from '@/api/main/SysUser';
 function useSysUser(){
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState<Error | null>(null);

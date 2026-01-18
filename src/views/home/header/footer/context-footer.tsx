@@ -1,4 +1,4 @@
-import imageLog from '../../../../assets/huawei01.png'
+import imageLog from '@/assets/huawei01.png'
 import styles from './styles/context-footer.module.scss'
 // import HomeMenuDown from './hpme-menu-doen'
 const ContextFooter =()=>{

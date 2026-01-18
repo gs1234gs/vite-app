@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import signUp from '../../api/SignInUp/SignUp';
-import type { SignUpType } from "../../types/SignInUpType";
+import signUp from '@/api/SignInUp/SignUp';
+import type { SignUpType } from "@/types/SignInUpType";
 // import useSysMenu from '../main/SysMenu';
-// import { cacheSession } from '../../utils/cache';
-// import { SIGN_IN_CONST_TOKEN } from '../../const/SignInConst';
+// import { cacheSession } from '@/utils/cache';
+// import { SIGN_IN_CONST_TOKEN } from '@/const/SignInConst';
 function useSignUp() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);

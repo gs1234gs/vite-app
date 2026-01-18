@@ -8,13 +8,13 @@ const sendRequest = axios.create({
   // 默认请求地址，根据环境的不同可在.env 文件中进行修改
   // baseURL: import.meta.env.VITE_APP_BASE_API, // 确保有默认值
   // 设置接口访问超时时间
-  timeout: 5000, // request timeout
+  timeout: 10000, // request timeout
   // 跨域时候允许携带凭证
   withCredentials: true,
   // baseURL: url,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // headers: {
+  //   'Content-Type': 'application/json',
+  // },
 });
 sendRequest.interceptors.request.use(
   (config: any) => {

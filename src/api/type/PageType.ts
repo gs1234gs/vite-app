@@ -4,9 +4,9 @@ interface PageType<T>{
     condition:T
 }
 interface RequestCursorPage<T>{
-    lastId:number;
+    lastId:string;
     pageSize:number;
-    order:string;
+    order:string;//排序
     condition:T
 }
 

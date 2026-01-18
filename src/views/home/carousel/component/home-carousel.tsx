@@ -1,5 +1,5 @@
-import Carousel from '../../../../components/carousel/carousel.tsx'
-import style from './styles/carousel.module.scss'
+import Carousel from '@/components/carousel/carousel.tsx'
+import style from '@/views/home/carousel/component/styles/carousel.module.scss'
 // 引入图片
 import picture1 from '@/assets/picture/1.jpg';
 import picture2 from '@/assets/picture/2.jpg';

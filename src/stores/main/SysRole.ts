@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import { HttpErrorHelper } from '../../utils/http/HttpErrorHelper';
+import { HttpErrorHelper } from '@/utils/http/HttpErrorHelper';
 import { message } from 'antd';
-import type { PageType } from '../../api/type/PageType';
-import { findById, findPage,save } from '../../api/main/SysRole';
-import type { SysRoleType } from '../../api/main/type/SysRoleType';
+import type { PageType } from '@/api/type/PageType';
+import { findById, findPage,save } from '@/api/main/SysRole';
+import type { SysRoleType } from '@/api/main/type/SysRoleType';
 function useSysRole(){
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState<Error | null>(null);

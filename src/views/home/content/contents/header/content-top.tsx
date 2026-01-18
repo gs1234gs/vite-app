@@ -1,6 +1,6 @@
-import ImgCard from "../../../../../components/card/img-card";
+import ImgCard from "@/components/card/img-card";
 import styles from '..\/styles/img-card.module.scss'
-import {type CardData } from "../../../../../components/card/img-card";
+import {type CardData } from "@/components/card/img-card";
 
 const cardData : CardData={
         title: "Europe Street beat",

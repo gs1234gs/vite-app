@@ -1,7 +1,7 @@
 // import Cards from '../../../components/card/card.tsx'
 // import Carousel from '../../../components/carousel/carousel.tsx'
-import styles from './styles/content-index.module.scss'
-import CardCarousel from './component/card-carousel'
+import styles from '@/views/home/carousel/styles/content-index.module.scss'
+import CardCarousel from '@/views/home/carousel/component/card-carousel'
 // import style from './styles/carousel.module.scss'
 // import HomeCarousel from './components/top/home-carousel.tsx';
 // import CardsIndex from './components/top/home-card.tsx';

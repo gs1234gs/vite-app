@@ -1,10 +1,12 @@
 import { Navigate } from "react-router-dom";
-import { cacheSession } from "../utils/cache";
-import { SIGN_IN_CONST_TOKEN } from "../const/SignInConst";
-import { SYSTEM_MENU_BAR_CONST_KEY } from "../const/SiderBarConst";
-import LazyLoad from "./LazyLoad";
+import { cacheSession } from "@/utils/cache";
+import { SIGN_IN_CONST_TOKEN } from "@/const/SignInConst";
+import { SYSTEM_MENU_BAR_CONST_KEY } from "@/const/SiderBarConst";
+import LazyLoad from "@/routes/LazyLoad";
 
-const MainIndexLayout = LazyLoad("../components/layout/MainIndexLayout.tsx");
+const MainIndexLayout = <LazyLoad 
+    loader={()=>import("@/components/layout/MainIndexLayout.tsx")}
+/>;
 
 const MainLayoutWrapper = () => {
   const token = cacheSession.getCache(SIGN_IN_CONST_TOKEN);
