@@ -76,11 +76,7 @@ export interface ProductCustomerVO {
   offlineTime: string;
 
   /** 标签 ID */
-  tagId: string;
-
-  /** SKU ID */
-  skuId: string;
-
+  tagName: string;
   /** 最低价格（字符串形式） */
   minPrice: string;
 
@@ -137,4 +133,5 @@ export interface ProductCustomerDetailVO {
 
   /** 标签列表 */
   tagList: TagVO[];
+  discountPrice:string
 }

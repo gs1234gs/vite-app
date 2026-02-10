@@ -1,6 +1,7 @@
 // src/pages/system/model/FormModal.tsx
-import React, { forwardRef, useEffect, useImperativeHandle } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { Modal, Form, Input, Select, Switch } from 'antd';
+import type { Rule } from 'antd/es/form';
 
 export interface FormField {
   label: string;
@@ -8,8 +9,13 @@ export interface FormField {
   type: 'input' | 'select' | 'switch';
   options?: { label: string; value: any }[];
   disabled?: boolean;
-  required?: boolean; // 建议加上这个字段，用于动态控制必填
-   placeholder?: string;
+  required?: boolean;
+  placeholder?: string;
+  rules?: Rule[];
+  switchConfig?: {
+    checkedChildren?: React.ReactNode;
+    unCheckedChildren?: React.ReactNode;
+  };
 }
 
 export interface FormModalProps {
@@ -17,99 +23,132 @@ export interface FormModalProps {
   title: string;
   fields: FormField[];
   initialValues?: Record<string, any>;
-  onOk: (values: any) => void;
+  onOk: (values: any) => Promise<void> | void;
   onCancel: () => void;
+  okText?: string;
+  cancelText?: string;
+  width?: number | string;
 }
+
 export interface FormModalRef {
   resetForm: () => void;
+  setFieldsValue: (values: Record<string, any>) => void;
 }
+
 const renderInput = (field: FormField) => {
+  const commonProps = {
+    placeholder: field.placeholder || `请输入${field.label}`,
+    disabled: field.disabled,
+  };
+
   switch (field.type) {
     case 'input':
-      return (
-        <Input
-          placeholder={`请输入${field.label}`}
-          disabled={field.disabled}
-        />
-      );
+      return <Input {...commonProps} />;
     case 'select':
       return (
         <Select
-          placeholder={`请选择${field.label}`}
+          placeholder={field.placeholder || `请选择${field.label}`}
           disabled={field.disabled}
-        >
-          {field.options?.map((opt) => (
-            <Select.Option key={opt.value} value={opt.value}>
-              {opt.label}
-            </Select.Option>
-          ))}
-        </Select>
+          options={field.options}
+        />
       );
     case 'switch':
-      return <Switch disabled={field.disabled} />;
+      return (
+        <Switch
+          disabled={field.disabled}
+          checkedChildren={field.switchConfig?.checkedChildren || '开'}
+          unCheckedChildren={field.switchConfig?.unCheckedChildren || '关'}
+        />
+      );
     default:
-      return <Input />;
+      return <Input {...commonProps} />;
   }
 };
 
 const FormModal = forwardRef<FormModalRef, FormModalProps>((props, ref) => {
+  const {
+    visible,
+    title,
+    fields,
+    initialValues,
+    onOk,
+    onCancel,
+    okText = '保存',
+    cancelText = '取消',
+    width = 520,
+  } = props;
+
   const [form] = Form.useForm();
- const { visible, title, fields, initialValues, onOk, onCancel } = props;
-  // 每次 visible 变为 true 时重置表单并设置初始值
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  // ✅ 每次打开 / 初始值变化：先 reset 再 set
   useEffect(() => {
     if (visible) {
-      form.setFieldsValue(initialValues || {});
+      form.resetFields();
+      if (initialValues) {
+        form.setFieldsValue(initialValues);
+      }
     }
   }, [visible, initialValues, form]);
-   useImperativeHandle(ref, () => ({
-    resetForm: () => {
-      form.resetFields(); // 清空所有字段
-    },
+
+  useImperativeHandle(ref, () => ({
+    resetForm: () => form.resetFields(),
+    setFieldsValue: (values: Record<string, any>) => form.setFieldsValue(values),
   }));
 
-    const handleCancel = () => {
-    form.resetFields(); //  关闭时立即清空
+  const handleCancel = () => {
+    form.resetFields();
     onCancel();
   };
-  //  Modal 的 onOk 触发表单验证和提交
-  const handleOk = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        onOk(values);
-      })
-      .catch((err) => {
-        console.log('表单校验失败:', err);
-        // Ant Design 会自动显示错误提示，无需额外处理
-      });
+
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+      setConfirmLoading(true);
+      await onOk(values);
+      form.resetFields();
+    } catch (error) {
+      console.warn('表单验证或提交失败:', error);
+    } finally {
+      setConfirmLoading(false);
+    }
   };
+
+  const formItems = fields.map((field) => {
+    const rules: Rule[] = [...(field.rules || [])];
+    if (field.required !== false) {
+      const hasRequiredRule = rules.some(rule => 'required' in rule && rule.required);
+      if (!hasRequiredRule) {
+        rules.unshift({ required: true, message: `请输入${field.label}` });
+      }
+    }
+
+    return (
+      <Form.Item
+        key={field.name}
+        name={field.name}
+        label={field.label}
+        rules={rules}
+      >
+        {renderInput(field)}
+      </Form.Item>
+    );
+  });
 
   return (
     <Modal
-    
       open={visible}
       title={title}
-      okText="保存"
-      cancelText="取消"
-      onOk={handleOk} // 关键：绑定 handleOk
+      okText={okText}
+      cancelText={cancelText}
+      onOk={handleOk}
       onCancel={handleCancel}
-      destroyOnHidden = {true}
+      confirmLoading={confirmLoading}
+      destroyOnClose // ✅ 关键：关闭就销毁
+      width={width}
     >
-      <Form form={form} layout="vertical">
-        {fields.map((field) => (
-          <Form.Item
-            key={field.name}
-            name={field.name}
-            label={field.label}
-            rules={
-              field.required !== false
-                ? [{ required: true, message: `请输入${field.label}` }]
-                : []
-            }
-          >
-            {renderInput(field)}
-          </Form.Item>
-        ))}
+      <Form form={form} layout="vertical" preserve={false}>
+        {formItems}
       </Form>
     </Modal>
   );

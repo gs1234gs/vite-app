@@ -1,5 +1,6 @@
 import { Form, Input, Modal, Select, Radio, type TreeProps, Tree } from "antd";
-import UploadImage from "../../../../../../upload/UploadFile";
+// import UploadImage from "../../../../../../upload/UploadFile";
+import UploadImage from "@/components/upload/UploadFile";
 import { useEffect, useState, useMemo } from "react";
 
 interface Methods {
@@ -109,61 +110,41 @@ const FormModel1 = ({
     const result = convertMenuToTreeData(treeData);
     return result;
   }, [treeData]);
-
-  // 关键修复：在模态框打开时同步数据
-//   useEffect(() => {
-//     if (isModalOpen) {
-//     //   console.log('FormModel1 - 模态框打开，menuIds:', menuIds);
-      
-//       // 如果有菜单ID，设置选中状态
+// useEffect(() => {
+//   if (isModalOpen) {
+//     // 使用 setTimeout 让出主线程，避免阻塞 click 事件后续处理（如 message）
+//     const timer = setTimeout(() => {
+//          const currentFieldValue = form.getFieldValue('menuIdList');
 //       if (menuIds && menuIds.length > 0) {
 //         const stringKeys = menuIds.map(id => String(id));
-//         console.log('FormModel1 - 设置checkedKeys:', stringKeys);
-//         setCheckedKeys({ 
-//           checked: stringKeys, 
-//           halfChecked: [] 
-//         });
-        
-//         // 同时更新表单字段
+//         setCheckedKeys({ checked: stringKeys, halfChecked: [] });
 //         form.setFieldValue('menuIdList', menuIds);
 //       } else {
-//         // 新增情况，清空选中状态
 //         setCheckedKeys({ checked: [], halfChecked: [] });
 //         form.setFieldValue('menuIdList', []);
 //       }
-      
-//       // 自动展开所有有子节点的节点
-//     //   if (expandedKeys.length === 0 && treeData) {
-//     //     const getExpandKeys = (menus: any[]): string[] => {
-//     //       let keys: string[] = [];
-//     //       menus.forEach(menu => {
-//     //         if (menu.children && menu.children.length > 0) {
-//     //           keys.push(String(menu.id));
-//     //           keys = keys.concat(getExpandKeys(menu.children));
-//     //         }
-//     //       });
-//     //       return keys;
-//     //     };
-        
-//     //     const expandKeys = getExpandKeys(treeData);
-//     //     setExpandedKeys(expandKeys);
-//     //   }
-//     }
-//   }, [isModalOpen, menuIds, form, setCheckedKeys, treeData, expandedKeys.length, setExpandedKeys]);
+//     }, 0);
+
+//     return () => clearTimeout(timer);
+//   }
+// }, [isModalOpen, menuIds, form]);
 useEffect(() => {
   if (isModalOpen) {
-    // 使用 setTimeout 让出主线程，避免阻塞 click 事件后续处理（如 message）
     const timer = setTimeout(() => {
-      if (menuIds && menuIds.length > 0) {
-        const stringKeys = menuIds.map(id => String(id));
-        setCheckedKeys({ checked: stringKeys, halfChecked: [] });
-        form.setFieldValue('menuIdList', menuIds);
-      } else {
-        setCheckedKeys({ checked: [], halfChecked: [] });
-        form.setFieldValue('menuIdList', []);
+      // 🔥 关键修复：只有当表单中 menuIdList 为空（或未设置）时才初始化
+      const currentFieldValue = form.getFieldValue('menuIdList');
+      if (currentFieldValue === undefined || currentFieldValue === null || currentFieldValue.length === 0) {
+        if (menuIds && menuIds.length > 0) {
+          const stringKeys = menuIds.map(id => String(id));
+          setCheckedKeys({ checked: stringKeys, halfChecked: [] });
+          form.setFieldValue('menuIdList', menuIds);
+        } else {
+          setCheckedKeys({ checked: [], halfChecked: [] });
+          form.setFieldValue('menuIdList', []);
+        }
       }
+      // 如果表单已经有值（比如 handleEdit 已设置），就不覆盖！
     }, 0);
-
     return () => clearTimeout(timer);
   }
 }, [isModalOpen, menuIds, form]);
@@ -271,7 +252,7 @@ useEffect(() => {
                   {treeNodes && treeNodes.length > 0 ? (
                     <Tree
                       checkable
-                      checkStrictly={false} // 非严格模式，选中父节点自动选中子节点
+                      checkStrictly={true} // 非严格模式，选中父节点自动选中子节点
                       onExpand={onExpand}
                       expandedKeys={expandedKeys}
                       autoExpandParent={autoExpandParent}

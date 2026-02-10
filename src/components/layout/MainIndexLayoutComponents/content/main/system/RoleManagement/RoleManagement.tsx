@@ -1,13 +1,13 @@
 import type React from "react";
 import { useEffect, useState, useCallback } from "react";
-import type { SysRoleType } from "../../../../../../../api/main/type/SysRoleType";
-import type { PageType } from "../../../../../../../api/type/PageType";
+import type { SysRoleType } from "@/api/main/type/SysRoleType";
+import type { PageType } from "@/api/type/PageType";
 import { Form, message } from 'antd';
-import useSysRole from "../../../../../../../stores/main/SysRole";
+import useSysRole from "@/stores/main/SysRole";
 import TableTemplate from "../template/TableTemplate";
 import { columns, RoleList } from "./SysRole";
 import FormModel1 from "../model/FormModel1";
-import useSysMenu from "../../../../../../../stores/main/SysMenu";
+import useSysMenu from "@/stores/main/SysMenu";
 
 const RoleManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

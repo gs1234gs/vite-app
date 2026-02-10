@@ -19,6 +19,7 @@ const findPage = (data: PageType<ProductVO>) : Promise<ResultT<PageResult<Produc
 }
 //添加商品或修改商品
 const save= (data : ProductSaveVO) :Promise<ResultT<string>>  =>{
+    console.log(data)
 return sendRequest<ResultT<string>>({
         url:`${DOODS_PRODUCT_PREFIX}/save`,
         method:POST_METHOD,

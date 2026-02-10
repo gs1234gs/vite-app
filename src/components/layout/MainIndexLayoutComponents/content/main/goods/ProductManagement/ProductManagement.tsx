@@ -1,3 +1,5 @@
+// src/pages/goods/product/ProductManagement.tsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
@@ -5,7 +7,6 @@ import {
   Button,
   Space,
   Input,
-  Form,
   Select,
   DatePicker,
   Tag,
@@ -15,6 +16,7 @@ import {
   Typography,
   Popconfirm,
   Tooltip,
+  Form,
 } from 'antd';
 import {
   SearchOutlined,
@@ -31,18 +33,19 @@ import type { PageType } from '@/api/type/PageType';
 import useProduct from '@/stores/goods/Product';
 import dayjs from 'dayjs';
 import ProductModal from './ProductDialog';
+import { useMemo, useRef } from 'react';
+import useCategory from '@/stores/goods/Category';
+import type { CategoryVO } from '@/api/goods/category/CategoryType';
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
-// 商品管理主组件
 const ProductManagement: React.FC = () => {
   const [form] = Form.useForm();
   const useProductApi = useProduct();
   const { loading, findAllByApi, deleteByIdApi, deleteAllByIdApi } = useProductApi;
-  
-  // 状态管理
+  const {findPageApi} = useCategory()
   const [data, setData] = useState<ProductVO[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -54,10 +57,63 @@ const ProductManagement: React.FC = () => {
     total: 0,
     showSizeChanger: true,
     showQuickJumper: true,
-    showTotal: (total: number) => `共 ${total} 条记录`
+    showTotal: (total: number) => `共  ${total} 条记录`
   });
+const [categoryOptions, setCategoryOptions] = useState<{ label: string; value: string }[]>([]);
+const [categoryLoading, setCategoryLoading] = useState(false);
+  const pageSizeRef = useRef(pagination.pageSize);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 获取商品列表
+  useEffect(() => {
+    pageSizeRef.current = pagination.pageSize;
+  }, [pagination.pageSize]);
+const loadCategoryOptions = useCallback(
+  async (keyword: string) => {
+    setCategoryLoading(true);
+    try {
+      const res = await findPageApi({
+        pageNum: 1,
+        pageSize: 20, // 每次最多返回20条
+        condition: {
+          name: keyword.trim() || '',
+          id: '',
+          level: 0,
+          code: '',
+          description: '',
+          sortOrder: 0,
+          iconUrl: '',
+          status: 0,
+          recommended: 0,
+          creator: '',
+          updater: '',
+          createTime: '',
+          updateTime: '',
+          delFlag: 0
+        },
+      });
+      if (res?.rows) {
+        const options = res.rows.map((item) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+        setCategoryOptions(options);
+      } else {
+        setCategoryOptions([]);
+      }
+    } catch (err) {
+      message.error('分类搜索失败');
+      setCategoryOptions([]);
+    } finally {
+      setCategoryLoading(false);
+    }
+  },
+  [findPageApi]
+);
+
+  useEffect(() => {
+    pageSizeRef.current = pagination.pageSize;
+  }, [pagination.pageSize]);
+
   const fetchProductList = useCallback(async (pageNum = 1) => {
     try {
       const values = await form.validateFields();
@@ -68,40 +124,39 @@ const ProductManagement: React.FC = () => {
         timeRange: undefined
       };
 
-      const test: PageType<ProductVO> = {
+      const payload: PageType<ProductVO> = {
         pageNum,
-        pageSize: pagination.pageSize,
+        pageSize: pageSizeRef.current,
         condition
       };
 
-      const res = await findAllByApi(test);
+      const res = await findAllByApi(payload);
       if (res) {
         setData(res.rows || []);
-        setPagination(prev => ({
-          ...prev,
-          current: res.pageNum || pageNum,
-          total: res.total || 0
-        }));
+        
+        setPagination(prev => {
+          // 只有当实际值发生变化时才更新，避免不必要的状态更新
+          if (prev.current === (res.pageNum || pageNum) && prev.total === (res.total || 0)) {
+            return prev;
+          }
+          return {
+            ...prev,
+            current: res.pageNum || pageNum,
+            total: res.total || 0
+          };
+        });
       }
     } catch (error) {
       console.error('查询失败:', error);
     }
-  }, [form, findAllByApi, pagination.pageSize]);
+  }, [form, findAllByApi]);
 
-  // 初始加载
   useEffect(() => {
     fetchProductList();
   }, [fetchProductList]);
 
-  // 表格列定义
-  const columns: ColumnsType<ProductVO> = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-      fixed: 'left'
-    },
+  const columns: ColumnsType<ProductVO> = useMemo(() => [
+    { title: 'ID', dataIndex: 'id', key: 'id', width: 80, fixed: 'left' },
     {
       title: '商品名称',
       dataIndex: 'name',
@@ -120,10 +175,22 @@ const ProductManagement: React.FC = () => {
     },
     {
       title: '价格',
-      dataIndex: 'price',
-      key: 'price',
+      dataIndex: 'minPrice',
+      key: 'minPrice',
       width: 100,
-      render: (text) => `¥${text}`
+        render: (text) => {
+    // 处理 null / undefined / 空字符串
+    if (text == null || text === '') {
+      return '¥ 0.00';
+    }
+
+    const num = parseFloat(text); // 字符串转数字
+    if (isNaN(num)) {
+      return '¥ 0.00'; // 非法字符串兜底
+    }
+
+    return `¥ ${num.toFixed(2)}`;
+  }
     },
     {
       title: '库存',
@@ -141,9 +208,7 @@ const ProductManagement: React.FC = () => {
       dataIndex: 'salesVolume',
       key: 'salesVolume',
       width: 100,
-      render: (volume) => (
-        <Tag color="blue">{volume}</Tag>
-      )
+      render: (volume) => <Tag color="blue">{volume}</Tag>
     },
     {
       title: '状态',
@@ -171,18 +236,10 @@ const ProductManagement: React.FC = () => {
       render: (_, record) => (
         <Space size="small">
           <Tooltip title="查看">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              onClick={() => handleView(record)}
-            />
+            <Button type="text" icon={<EyeOutlined />} onClick={() => handleView(record)} />
           </Tooltip>
           <Tooltip title="编辑">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
+            <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
           </Tooltip>
           <Tooltip title="删除">
             <Popconfirm
@@ -191,34 +248,27 @@ const ProductManagement: React.FC = () => {
               okText="确定"
               cancelText="取消"
             >
-              <Button
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-              />
+              <Button type="text" danger icon={<DeleteOutlined />} />
             </Popconfirm>
           </Tooltip>
         </Space>
       )
     }
-  ];
+  ], []);
 
-  // 处理查看
-  const handleView = (record: ProductVO) => {
+  const handleView = useCallback((record: ProductVO) => {
     setModalData(record);
     setModalType('view');
     setModalVisible(true);
-  };
+  }, []);
 
-  // 处理编辑
-  const handleEdit = (record: ProductVO) => {
+  const handleEdit = useCallback((record: ProductVO) => {
     setModalData(record);
     setModalType('edit');
     setModalVisible(true);
-  };
+  }, []);
 
-  // 处理删除
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     try {
       await deleteByIdApi(id);
       message.success('删除成功');
@@ -226,61 +276,51 @@ const ProductManagement: React.FC = () => {
     } catch (error) {
       message.error('删除失败');
     }
-  };
+  }, [deleteByIdApi, fetchProductList, pagination]);
 
-  // 批量删除
-  const handleBatchDelete = async () => {
+  const handleBatchDelete = useCallback(async () => {
     if (selectedRowKeys.length === 0) {
       message.warning('请选择要删除的商品');
       return;
     }
-
     try {
-      await deleteAllByIdApi(selectedRowKeys);
+      await deleteAllByIdApi(selectedRowKeys as string[]);
       message.success('批量删除成功');
       setSelectedRowKeys([]);
       fetchProductList(pagination.current);
     } catch (error) {
       message.error('批量删除失败');
     }
-  };
+  }, [selectedRowKeys, deleteAllByIdApi, fetchProductList, pagination]);
 
-  // 重置搜索
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     form.resetFields();
     fetchProductList(1);
-  };
+  }, [form, fetchProductList]);
 
-  // 表格选择变化
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
+  const onSelectChange = useCallback((newSelectedRowKeys: React.Key[]) => {
     setSelectedRowKeys(newSelectedRowKeys);
-  };
+  }, []);
 
-  // 分页变化
-  const handleTableChange = (newPagination: any) => {
-    setPagination(newPagination);
+  const handleTableChange = useCallback((newPagination: any) => {
+    setPagination(prev => ({
+      ...prev,
+      current: newPagination.current,
+      pageSize: newPagination.pageSize,
+    }));
     fetchProductList(newPagination.current);
-  };
+  }, [fetchProductList]);
 
-  // 行选择配置
-  const rowSelection = {
+  const rowSelection = useMemo(() => ({
     selectedRowKeys,
     onChange: onSelectChange,
-  };
+  }), [selectedRowKeys, onSelectChange]);
 
   return (
     <div style={{ padding: 24 }}>
       <Card bordered={false} style={{ marginBottom: 24 }}>
-        <Title level={4} style={{ marginBottom: 24 }}>
-          商品管理
-        </Title>
-        
-        {/* 搜索表单 */}
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={() => fetchProductList(1)}
-        >
+        <Title level={4} style={{ marginBottom: 24 }}>商品管理</Title>
+        <Form form={form} layout="vertical" onFinish={() => fetchProductList(1)}>
           <Row gutter={24}>
             <Col xs={24} sm={12} md={8} lg={6}>
               <Form.Item label="商品名称" name="name">
@@ -301,32 +341,45 @@ const ProductManagement: React.FC = () => {
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={8} lg={6}>
+  <Form.Item label="分类" name="categoryId">
+    <Select
+  mode="multiple"
+  showSearch={{
+    onSearch: (value) => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      if (!value.trim()) {
+        setCategoryOptions([]);
+        return;
+      }
+      searchTimeoutRef.current = setTimeout(() => {
+        loadCategoryOptions(value);
+      }, 300);
+    },
+    filterOption: false, // ✅ 正确位置
+  }}
+  placeholder="请输入分类名称搜索"
+  allowClear
+  loading={categoryLoading}
+  options={categoryOptions}
+  notFoundContent={categoryLoading ? '搜索中...' : '无匹配分类'}
+/>
+  </Form.Item>
+</Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
               <Form.Item label="创建时间" name="timeRange">
-                <RangePicker
-                  style={{ width: '100%' }}
-                  showTime
-                  format="YYYY-MM-DD HH:mm"
-                />
+                <RangePicker style={{ width: '100%' }} showTime format="YYYY-MM-DD HH:mm" />
               </Form.Item>
             </Col>
           </Row>
-          
           <Row gutter={16} justify="end">
-            <Col>
-              <Button onClick={handleReset} icon={<ReloadOutlined />}>
-                重置
-              </Button>
-            </Col>
-            <Col>
-              <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-                搜索
-              </Button>
-            </Col>
+            <Col><Button onClick={handleReset} icon={<ReloadOutlined />}>重置</Button></Col>
+            <Col><Button type="primary" htmlType="submit" icon={<SearchOutlined />}>搜索</Button></Col>
           </Row>
         </Form>
       </Card>
 
-      {/* 操作栏 */}
       <Card bordered={false} style={{ marginBottom: 24 }}>
         <Space style={{ marginBottom: 16 }}>
           <Button
@@ -340,7 +393,6 @@ const ProductManagement: React.FC = () => {
           >
             新增商品
           </Button>
-          
           <Button
             type="primary"
             danger
@@ -350,16 +402,11 @@ const ProductManagement: React.FC = () => {
           >
             批量删除 ({selectedRowKeys.length})
           </Button>
-          
-          <Button
-            icon={<UploadOutlined />}
-            onClick={() => message.info('导出功能开发中')}
-          >
+          <Button icon={<UploadOutlined />} onClick={() => message.info('导出功能开发中')}>
             导出数据
           </Button>
         </Space>
 
-        {/* 商品表格 */}
         <Table
           columns={columns}
           dataSource={data}
@@ -374,7 +421,6 @@ const ProductManagement: React.FC = () => {
         />
       </Card>
 
-      {/* 商品弹窗 */}
       <ProductModal
         visible={modalVisible}
         type={modalType}

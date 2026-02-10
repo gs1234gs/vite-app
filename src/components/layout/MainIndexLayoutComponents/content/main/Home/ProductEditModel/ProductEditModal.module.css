@@ -1,0 +1,95 @@
+/* 商品详情弹窗容器 */
+.modalContent {
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 800px;
+}
+
+/* 主图容器 */
+.mainImageContainer {
+  position: relative;
+  height: 600px;
+  overflow: hidden;
+}
+
+/* SKU 列表项 */
+.skuItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  background-color: transparent;
+  position: relative;
+}
+
+.skuItemSelected {
+  background-color: #fff;
+  border-left: 3px solid #cf1322;
+}
+
+/* SKU 缩略图容器 */
+.skuThumbWrapper {
+  position: relative;
+  margin-right: 12px;
+}
+
+/* 视频标识覆盖层 */
+.videoOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.videoLabel {
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* 操作按钮区（收藏/分享） */
+.actionButtons {
+  margin-top: 24px;
+}
+
+/* SKU 区域 */
+.skuSection {
+  margin-top: 24px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* 服务说明 */
+.serviceInfo {
+  margin-top: 24px;
+}
+
+.serviceText {
+  margin-top: 8px;
+  line-height: 1.8;
+  font-size: 12px;
+}
+
+/* 购买按钮组（京东风格） */
+.buyButtonGroup {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.buyButton {
+  flex: 1;
+  height: 48px;
+  font-weight: bold;
+  font-size: 16px;
+}

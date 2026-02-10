@@ -1,61 +1,88 @@
+import sendRequest from "@/api/axios";
+import { GOODS_API_PREFIX } from "@/api/prefix/PrefixApi";
+import { GET_METHOD, POST_METHOD } from "@/api/type/ConstRequestMethods";
+import type { RequestCursorPage } from "@/api/type/PageType";
+import type { ResultT, CursorPageResult } from "@/api/type/ResultType";
+import type {
+  ProductSearchSaveVO,
+  ProductCustomerVO,
+  ProductCustomerDetailVO
+} from "./RecommendProductType";
 
-import sendRequest from "../../axios";
-import { GOODS_API_PREFIX} from "../../prefix/PrefixApi";
-import { DELETE_METHOD, GET_METHOD, POST_METHOD } from "../../type/ConstRequestMethods";
-import type { RequestCursorPage } from "../../type/PageType";
-import type { CursorPageResult, ResultT } from "../../type/ResultType";
-import type { ProductCustomerVO } from "./RecommendProductType";
+// 推荐商品 API 前缀
+const RECOMMEND_PRODUCT_PREFIX = `${GOODS_API_PREFIX}/recommendProduct`;
 
-const DOODS_PRODUCT_PREFIX = `${GOODS_API_PREFIX}/category`
+/**
+ * 搜索商品（游标分页）
+ */
+const searchProduct = (
+  data: RequestCursorPage<ProductSearchSaveVO>
+): Promise<ResultT<CursorPageResult<ProductCustomerVO>>> => {
+  return sendRequest<ResultT<CursorPageResult<ProductCustomerVO>>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/search`,
+    method: POST_METHOD,
+    data
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
 
-//添加或修改分类
-const save= (data: any) :Promise<ResultT<string>>  =>{
-return sendRequest<ResultT<string>>({
-        url:`${DOODS_PRODUCT_PREFIX}/save`,
-        method:POST_METHOD,
-        data:data
-    })
-    .then(res=>res.data)
-    .catch(err=>{throw err})
-}
+/**
+ * 推荐商品列表（首页推荐）
+ */
+const recommend = (): Promise<ResultT<ProductCustomerVO[]>> => {
+  return sendRequest<ResultT<ProductCustomerVO[]>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/recommend`,
+    method: GET_METHOD
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
 
-//删除商品
-const deleteById= (id:string) :Promise<ResultT<any>>  =>{
-return sendRequest<ResultT<any>>({
-        url:`${DOODS_PRODUCT_PREFIX}/deleteById/${id}`,
-        method:DELETE_METHOD,
-    })
-    .then(res=>res.data)
-    .catch(err=>{throw err})
-}
-// //批量删除商品
-// const deleteAllById= (ids:Array<number>) :Promise<ResultT<number>>  =>{
-// return sendRequest<ResultT<number>>({
-//         url:`${DOODS_PRODUCT_PREFIX}/deleteAllById`,
-//         method:DELETE_METHOD,
-//         data:ids
-//     })
-//     .then(res=>res.data)
-//     .catch(err=>{throw err})
-// }
-//游标查询
-const findCursor = (data: RequestCursorPage< any>) : Promise<ResultT<CursorPageResult<ProductCustomerVO>>> =>{
-    return sendRequest<ResultT<CursorPageResult<ProductCustomerVO>>>({
-        url:`${DOODS_PRODUCT_PREFIX}/findCursor`,
-        method:POST_METHOD,
-        data:data
-    })
-    .then(res=>res.data)
-    .catch(err=>{throw err})
-}
+/**
+ * 猜你喜欢
+ */
+const like = (): Promise<ResultT<ProductCustomerVO[]>> => {
+  return sendRequest<ResultT<ProductCustomerVO[]>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/like`,
+    method: GET_METHOD
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
 
-const findById = (id: string) : Promise<ResultT<any>> =>{
-    return sendRequest<ResultT<any>>({
-        url:`${DOODS_PRODUCT_PREFIX}/findById/${id}`,
-        method:GET_METHOD,
-    })
-    .then(res=>res.data)
-    .catch(err=>{throw err})
-}
+/**
+ * 获取商品详情
+ */
+const detail = (id: string): Promise<ResultT<ProductCustomerDetailVO>> => {
+  return sendRequest<ResultT<ProductCustomerDetailVO>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/detail/${id}`,
+    method: GET_METHOD
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
 
-export {findById,save,deleteById}
+const findAllProductsByIds = (ids: string[]): Promise<ResultT<ProductCustomerVO[]>> => {
+  return sendRequest<ResultT<ProductCustomerVO[]>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/recommendByIds`,
+    method: GET_METHOD,
+    params:{
+      ids:ids
+    }
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
+
+export { searchProduct, recommend, like, detail , findAllProductsByIds};

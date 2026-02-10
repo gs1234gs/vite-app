@@ -393,7 +393,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: 300px;
+  /* max-height: 300px; */
 }
 
 .message {
@@ -531,6 +531,7 @@
   padding: 16px 20px;
   background: #f8f9fa;
   border-top: 1px solid #f0f0f0;
+  
 }
 
 .ai-recommendations-title {
@@ -767,20 +768,24 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
+    justify-items: center;
 }
 
 .item-card {
-  background: #f8f9fa;
+  /* background: #f8f9fa; */
+   background: white;
   border-radius: 12px;
   padding: 16px;
   text-align: center;
   transition: all 0.3s ease;
   cursor: pointer;
+  border: 1px solid #f0f0f0;
+
 }
 
 .item-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); */
 }
 
 .item-image {
@@ -878,6 +883,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
+   justify-items: start; 
 }
 
 .product-card {
@@ -1106,6 +1112,7 @@
 }
 
 /* 底部导航 */
+/* 底部导航 - 支持 5 项 */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -1113,10 +1120,12 @@
   right: 0;
   background: white;
   display: flex;
-  justify-content: space-around;
-  padding: 12px 0;
+  justify-content: space-between; /* 更均匀分布 */
+  align-items: center;
+  padding: 10px 16px;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
   z-index: 100;
+  height: 60px; /* 固定高度，避免跳动 */
 }
 
 .nav-item {
@@ -1126,13 +1135,39 @@
   gap: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 8px;
+  padding: 6px 8px;
   border-radius: 12px;
-  min-width: 60px;
+  flex: 1; /* 关键：让每项等宽 */
+  max-width: 80px;
+  color: #666; /* 默认文字颜色 */
+  text-decoration: none;
 }
 
-.nav-item.active {
+.nav-item .nav-icon,
+.nav-item .nav-label {
+  transition: color 0.3s ease;
+}
+
+.nav-item.active,
+.nav-item:hover {
+  color: #e1251b !important; /* 京东主色 */
+}
+
+.nav-item.active .nav-icon,
+.nav-item.active .nav-label,
+.nav-item:hover .nav-icon,
+.nav-item:hover .nav-label {
   color: #e1251b;
+}
+
+.nav-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 12px;
+  line-height: 1.2;
 }
 
 .nav-item:hover {
@@ -1238,6 +1273,8 @@
   
   .quick-links-section {
     gap: 16px;
+     box-shadow: none !important;
+  border: none; /* 如果还有边框也可以一并移除 */
   }
   
   .link-group {
@@ -1257,4 +1294,139 @@
     font-size: 10px;
     height: 24px;
   }
+}
+
+/* 推荐标签 */
+.recommend-tabs {
+  display: flex;
+  gap: 16px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-bottom: 2px solid transparent;
+  font-weight: 500;
+}
+
+.tab-btn.active {
+  color: #e40000;
+  border-bottom-color: #e40000;
+}
+/* 单商品或空状态：居中大卡片 */
+.product-grid.single-item {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* 避免顶部留白过大 */
+  padding: 30px 0;
+  gap: 0; /* 覆盖 grid 的 gap */
+}
+
+.product-grid.single-item .product-card {
+  width: 90%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+/* 全局刷新图标已在内联样式中处理 */
+/* ========== 紧凑商品卡片 - 仅用于百亿补贴 / 秒杀区 ========== */
+.quick-links-section .compact-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  justify-items: center;
+}
+
+.compact-product-card {
+  background: white;
+   border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+   height: auto; 
+}
+
+.compact-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.compact-product-image {
+  position: relative;
+  height: 90px;
+  overflow: hidden;
+}
+
+.compact-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.compact-product-card:hover .compact-product-image img {
+  transform: scale(1.05);
+}
+
+.compact-product-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #e1251b;
+  color: white;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.compact-product-info {
+  padding: 10px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.compact-product-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 6px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 32px; /* 保证两行高度一致 */
+}
+
+.compact-product-sales {
+  font-size: 11px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.compact-product-price-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.compact-current-price {
+  font-size: 15px;
+  font-weight: bold;
+  color: #e1251b;
+}
+
+.compact-original-price {
+  font-size: 11px;
+  color: #999;
+  text-decoration: line-through;
 }

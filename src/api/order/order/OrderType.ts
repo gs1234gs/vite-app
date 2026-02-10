@@ -1,6 +1,7 @@
-import type { BasePojo } from "../../type/BasePojo";
+import type { BasePojo } from "@/api/type/BasePojo";
 import type { OrderAddressVO } from "../address/OrderAddressType";
-
+import type { SKUVO } from "@/api/goods/sku/SKUType";
+import type { TagVO } from "@/api/goods/tag/TagType";
 
 /**
  * 采购订单保存/提交 VO（用于创建或更新订单）
@@ -54,12 +55,12 @@ export interface PurChaseOrderSaveVO {
 
   /**
    * 付款方式：
-   * 1=在线支付, 2=货到付款, 3=其他
+   * "1"=在线支付, "2"=货到付款, "3"=其他
    */
-  payType?: '1' | '2' | '3'; // 或 string，若后端接受任意字符串
+  payType?: '1' | '2' | '3';
 
   /**
-   * 配送费用（单位：分 or 元？由业务决定，但类型为 string）
+   * 配送费用（单位：分 or 元？由业务决定，但以字符串传输，避免精度丢失）
    */
   deliveryFee?: string;
 
@@ -84,9 +85,11 @@ export interface PurChaseOrderSaveVO {
   num?: number;
 
   /**
-   * 收货地址 ID
+   * 收货地址 ID（关键！不是整个地址对象）
    */
   addressId?: string;
+  //商品id
+  productId:string
 }
 
 /**
@@ -111,10 +114,10 @@ export interface PurChaseOrderVO extends BasePojo {
   /** 收货状态：1=未收货, 2=已收货 */
   receiveStatus: 1 | 2;
 
-  /** 订单总金额（字符串形式，如 "299.90"） */
+  /** 订单总金额（字符串形式） */
   amount: string;
 
-  /** 支付时间（ISO 8601） */
+  /** 支付时间（ISO 8601，可能为 null） */
   payTime: string | null;
 
   /** 下单时间 */
@@ -132,7 +135,7 @@ export interface PurChaseOrderVO extends BasePojo {
   /** 配送费用（字符串形式） */
   deliveryFee: string;
 
-  /** 配送方式（如 "顺丰快递", "自提"） */
+  /** 配送方式 */
   delivery: string;
 
   /** 实付金额（字符串形式） */
@@ -144,6 +147,38 @@ export interface PurChaseOrderVO extends BasePojo {
   /** 商品数量 */
   num: number;
 
-  /** 收货地址信息 */
+  /** 收货地址信息（嵌套对象） */
   orderAddressVO: OrderAddressVO;
+  //订单名称
+  name:string;
+  image:string
+}
+
+
+export interface PurchaseOrderDetailVO extends BasePojo {
+  id: string;
+  orderNo: string;
+  status: 1 | 2 | 3 | 4 | 5 | 6;
+  payStatus: 1 | 2;
+  receiveStatus: 1 | 2;
+  amount: string;
+  payTime: string | null;
+  orderPlacementTime: string;
+  skuId: string;
+  payType: '1' | '2' | '3';
+  deliveryFee: string;
+  delivery: string;
+  payAmount: string;
+  remark: string;
+  num: number;
+  orderAddressVO: OrderAddressVO;
+  name: string;
+  sku: SKUVO;
+  tag: TagVO[];
+}
+
+export interface PurchaseOrderSearchVO {
+  startTime?: string; // ISO 或 'yyyy-MM-dd HH:mm:ss'
+  endTime?: string;
+  payStatus?: number;
 }

@@ -1,4 +1,4 @@
-import { deleteBySkuId, findBySkuId, findSkuPage, saveSku } from '@/api/goods/sku/SKU';
+import { deleteBySkuId, findBySkuId, findSkuPage, saveSku,findByProductId } from '@/api/goods/sku/SKU';
 import type { SKUGroupByProductIdVO, SKUSaveVO, SKUVO } from '@/api/goods/sku/SKUType';
 import type { PageType } from '@/api/type/PageType';
 import type { PageResult, ResultT } from '@/api/type/ResultType';
@@ -59,6 +59,13 @@ function useSku() {
     []
   );
 
+    const findSkuByProductIdApi = useCallback(
+    async (productId: string): Promise<SKUVO > => {
+      return withLoading(() => findByProductId(productId), false);
+    },
+    []
+  );
+
   return {
     loading,
     error,
@@ -66,6 +73,7 @@ function useSku() {
     findByIdApi,
     deleteByIdApi,
     findSkuPageApi,
+    findSkuByProductIdApi
   };
 }
 

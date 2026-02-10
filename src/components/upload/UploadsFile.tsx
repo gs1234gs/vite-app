@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+// src/components/upload/UploadsFile.tsx
+import React, { useMemo } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
 import { Upload, message } from 'antd';
 import type { UploadFile, UploadProps } from 'antd';
 import { uploadApi } from '@/api/upload/Upload';
 import { HttpStatusCode } from 'axios';
 
-// 模拟上传API
+type UploadsAppProps = {
+  value?: string[];
+  onChange?: (picList: string[]) => void;
+  maxCount?: number;
+  accept?: string;
+  disabled?: boolean; // 添加 disabled 支持
+};
+
 const uploadImagesApi = async (formData: FormData) => {
   try {
     const res = await uploadApi(formData);
@@ -13,84 +21,80 @@ const uploadImagesApi = async (formData: FormData) => {
       message.error('文件上传失败: ' + (res.msg || '未知错误'));
       return null;
     }
-    return res.data;  // 返回多个文件URL
+    return res.data; // 假设返回 string[]
   } catch (error) {
     message.error('上传失败');
-    console.error('上传失败，请稍后重试', error);
+    console.error('上传失败', error);
     return null;
   }
 };
 
-const UploadsApp: React.FC = () => {
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [mobilePaths, setMobilePaths] = useState<string[]>([]);
+const UploadsApp: React.FC<UploadsAppProps> = ({
+  value = [],
+  onChange,
+  maxCount = 8,
+  accept = 'image/*',
+  disabled = false,
+}) => {
+  // ✅ 完全由 value 派生 fileList，无需 useState + useEffect
+  const fileList = useMemo<UploadFile[]>(() => {
+    return (Array.isArray(value) ? value : []).map(url => ({
+      uid: url, // ✅ 稳定 uid
+      name: url.substring(url.lastIndexOf('/') + 1) || 'unknown',
+      status: 'done',
+      url,
+      response: { filePath: url },
+    }));
+  }, [value]);
 
   const handleBeforeUpload: UploadProps['beforeUpload'] = async (file) => {
+    if (value.length >= maxCount) {
+      message.warning(`最多只能上传 ${maxCount} 个文件`);
+      return Upload.LIST_IGNORE;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
 
     const urlList = await uploadImagesApi(formData);
 
-    if (urlList && urlList[0]) {
-      // 创建一个新的文件对象，包含响应数据
-      const newFile = {
-        ...file,
-        status: 'done',
-        response: { filePath: urlList[0] },
-        url: urlList[0]
-      };
-      setFileList(prev => [...prev, newFile as UploadFile]);
-      setMobilePaths(prev => [...prev, urlList[0]]);
+    if (Array.isArray(urlList) && urlList[0]) {
+      const newUrl = urlList[0];
+      const updatedUrls = [...value, newUrl];
+      onChange?.(updatedUrls);
     } else {
       message.error('上传失败');
     }
-    
-    return Upload.LIST_IGNORE; // 阻止默认上传行为
+
+    return Upload.LIST_IGNORE;
   };
 
-  const handleChange: UploadProps['onChange'] = async ({ fileList: newFileList }) => {
-    setFileList(newFileList);
+  const handleRemove = (file: UploadFile) => {
+    const urlToRemove = file.url || (file.response?.filePath as string);
+    if (!urlToRemove) return;
 
-    const newMobilePaths: string[] = [];
-    for (const file of newFileList) {
-      if (file.status === 'done' && file.response) {
-        const filePath = file.response.filePath;
-        if (filePath) {
-          newMobilePaths.push(filePath);
-        }
-      }
-    }
-
-    setMobilePaths(newMobilePaths); // 更新上传后的路径
+    const updatedUrls = value.filter(url => url !== urlToRemove);
+    onChange?.(updatedUrls);
   };
 
   const uploadButton = (
-    <button style={{ border: 0, background: 'none' }} type="button">
+    <div>
       <PlusOutlined />
       <div style={{ marginTop: 8 }}>上传</div>
-    </button>
+    </div>
   );
 
   return (
-    <>
-      <Upload
-        listType="picture-card"
-        fileList={fileList}
-        onChange={handleChange}
-        beforeUpload={handleBeforeUpload}
-      >
-        {fileList.length >= 8 ? null : uploadButton}
-      </Upload>
-
-      <div>
-        <h3>上传路径列表：</h3>
-        <ul>
-          {mobilePaths.map((path, index) => (
-            <li key={index}>{path}</li>
-          ))}
-        </ul>
-      </div>
-    </>
+    <Upload
+      listType="picture-card"
+      fileList={fileList}
+      beforeUpload={handleBeforeUpload}
+      onRemove={handleRemove}
+      accept={accept}
+      disabled={disabled}
+    >
+      {fileList.length < maxCount && uploadButton}
+    </Upload>
   );
 };
 

@@ -18,8 +18,8 @@ const findPage = (data: PageType<TagVO>) : Promise<ResultT<PageResult<TagVO>>> =
     .catch(err=>{throw err})
 }
 //添加或修改
-const save= (data : TagSaveVO) :Promise<ResultT<any>>  =>{
-return sendRequest<ResultT<any>>({
+const save= (data : TagSaveVO) :Promise<ResultT<string>>  =>{
+return sendRequest<ResultT<string>>({
         url:`${DOODS_PRODUCT_PREFIX}/save`,
         method:POST_METHOD,
         data:data

@@ -1,35 +1,29 @@
+// src/pages/goods/product/ProductDialog.tsx
+
 import React, { useEffect, useState } from 'react';
 import {
   Modal,
   Form,
   Input,
-  InputNumber,
-  Select,
   Switch,
   DatePicker,
   Row,
   Col,
-  Upload,
-  Button,
   message,
-  Space,
-  Divider
+  Typography,
+  InputNumber,
+  Select
 } from 'antd';
-import {
-  UploadOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  MinusCircleOutlined
-} from '@ant-design/icons';
 import type { ProductVO, ProductSaveVO } from '@/api/goods/product/ProductType';
-import type { UploadFile } from 'antd';
 import useProduct from '@/stores/goods/Product';
+import useCategory from '@/stores/goods/Category';
+import { findById as findProductById } from '@/api/goods/product/Product';
 import dayjs from 'dayjs';
 import UploadsApp from '@/components/upload/UploadsFile';
-
+import TagSelect from './TagSelect'; // 引入新的标签选择组件
 const { TextArea } = Input;
+const { Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
 
 interface ProductModalProps {
   visible: boolean;
@@ -38,34 +32,6 @@ interface ProductModalProps {
   onCancel: () => void;
   onSuccess: () => void;
 }
-
-// 模拟数据
-const categories = [
-  { id: 1, name: '电子产品' },
-  { id: 2, name: '服装服饰' },
-  { id: 3, name: '家居用品' },
-  { id: 4, name: '图书音像' },
-  { id: 5, name: '运动户外' },
-  { id: 6, name: '美妆个护' },
-];
-
-const tags = [
-  { id: 1, name: '热销' },
-  { id: 2, name: '新品' },
-  { id: 3, name: '推荐' },
-  { id: 4, name: '特价' },
-  { id: 5, name: '限量' },
-  { id: 6, name: '爆款' },
-];
-
-const warehouses = [
-  { id: 1, name: '北京仓库' },
-  { id: 2, name: '上海仓库' },
-  { id: 3, name: '广州仓库' },
-  { id: 4, name: '深圳仓库' },
-  { id: 5, name: '成都仓库' },
-  { id: 6, name: '西安仓库' },
-];
 
 const ProductModal: React.FC<ProductModalProps> = ({
   visible,
@@ -77,126 +43,151 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const [form] = Form.useForm();
   const useProductApi = useProduct();
   const { saveProductApi } = useProductApi;
+  const { findPageApi: findCategories, findByIdApi } = useCategory();
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  // 初始化表单数据
+  // 加载分类
   useEffect(() => {
-    if (data && visible) {
-      const formData = {
+    const fetchCategories = async () => {
+      try {
+        const response = await findCategories({
+          pageNum: 1,
+          pageSize: 100,
+          condition: {
+            id: '',
+            name: '',
+            level: 0,
+            code: '',
+            description: '',
+            sortOrder: 0,
+            iconUrl: '',
+            status: 0,
+            recommended: 0,
+            creator: '',
+            updater: '',
+            createTime: '',
+            updateTime: '',
+            delFlag: 0
+          }
+        });
+        if (response?.rows) {
+          setCategories(response.rows);
+        }
+      } catch (error) {
+        console.error('获取分类失败:', error);
+      }
+    };
+    fetchCategories();
+  }, [findCategories]);
+
+  // 回显商品数据
+  useEffect(() => {
+    if (type === 'create') {
+      setTimeout(() => form.resetFields(), 0);
+    } else if (data && visible && type === 'view') {
+      // 查看模式下直接使用传入的数据
+      setTimeout(() => form.setFieldsValue({
         ...data,
-        timeRange: data.startTime && data.endTime 
-          ? [dayjs(data.startTime), dayjs(data.endTime)]
-          : null,
+        id: data.id, // 确保传递商品ID用于编辑
         publishTime: data.publishTime ? dayjs(data.publishTime) : null,
         offlineTime: data.offlineTime ? dayjs(data.offlineTime) : null,
-        // 将分类、标签和仓库ID数组转换为Select组件所需的格式
-        categoryId: data.categoryId || [],
-        tagId: data.tagId || [],
-        warehouseId: data.warehouseId || [],
-        // 将status short转换为boolean
-        status: data.status === 1
+        categoryId: Array.isArray(data.categoryId) ? data.categoryId : [],
+        tagId: Array.isArray(data.tagId) ? data.tagId : [],
+        warehouseId: data.warehouseId ? [data.warehouseId] : [],
+        status: data.status === 1,
+        image: data.image ? [data.image] : [],
+        video: data.video ? [data.video] : [],
+      }), 0);
+    } else if (type === 'edit' && data?.id && visible) {
+      // 编辑模式下，通过ID获取最新数据
+      const fetchLatestData = async () => {
+        setLoading(true);
+        try {
+          const response = await findProductById(data.id);
+          if (response?.code === 200 && response?.data) {
+            const latestData = response.data;
+            setTimeout(() => form.setFieldsValue({
+              ...latestData,
+              id: latestData.id,
+              publishTime: latestData.publishTime ? dayjs(latestData.publishTime) : null,
+              offlineTime: latestData.offlineTime ? dayjs(latestData.offlineTime) : null,
+              categoryId: Array.isArray(latestData.categoryId) ? latestData.categoryId : [],
+              tagId: Array.isArray(latestData.tagId) ? latestData.tagId : [],
+              warehouseId: latestData.warehouseId ? [latestData.warehouseId] : [],
+              status: latestData.status === 1,
+              image: latestData.image ? [latestData.image] : [],
+              video: latestData.video ? [latestData.video] : [],
+            }), 0);
+          }
+        } catch (error) {
+          console.error('获取商品详情失败:', error);
+          message.error('获取商品详情失败');
+        } finally {
+          setLoading(false);
+        }
       };
-      form.setFieldsValue(formData);
       
-      // 如果有图片，初始化文件列表
-      if (data.image) {
-        setFileList([{
-          uid: '-1',
-          name: 'product-image',
-          status: 'done',
-          url: data.image
-        }]);
-      }
-    } else if (!data && visible) {
-      form.resetFields();
-      setFileList([]);
+      fetchLatestData();
     }
-  }, [data, visible, form]);
+  }, [data, visible, type, form]);
 
-  // 处理提交
   const handleSubmit = async () => {
-  try {
-    const values = await form.validateFields();
+    try {
+      const values = await form.validateFields();
 
-    const submitData: ProductSaveVO = {
-      ...values,
-      id: type === 'edit' ? data?.id : undefined,
-      image: fileList[0]?.url || '',
-     publishTime: values.publishTime?.format('YYYY-MM-DDTHH:mm:ss'),  // 使用 'T' 作为分隔符
-  offlineTime: values.offlineTime?.format('YYYY-MM-DDTHH:mm:ss'),  // 使用 'T' 作为分隔符
-      // 处理分类和标签数组
-      categoryId: values.categoryId || [],
-      tagId: values.tagId || [],
-      warehouseId: values.warehouseId || [],
-      // 将布尔值转换为 short (1 或 0)
-      status: values.status ? 1 : 0 
-    };
+      const submitData: ProductSaveVO = {
+        id: values.id, // 包含商品ID用于编辑
+        name: values.name,
+        description: values.description,
+        image: values.image?.[0] || '',
+        video: values.video?.[0] || '',
+        brand: values.brand,
+        placeOfOrigin: values.placeOfOrigin,
+        level: values.level,
+        salesVolume: values.salesVolume,
+        status: values.status ? 1 : 0,
+        publishTime: values.publishTime?.format('YYYY-MM-DDTHH:mm:ss'),
+        offlineTime: values.offlineTime?.format('YYYY-MM-DDTHH:mm:ss'),
+        categoryId: values.categoryId || [],
+        tagId: values.tagId || [],
+      };
 
-    setLoading(true);
-    const result = await saveProductApi(submitData);
-
-    if (result) {
-      message.success(type === 'create' ? '创建成功' : '更新成功');
-      onSuccess();
+      const result = await saveProductApi(submitData);
+      if (result) {
+        message.success(type === 'edit' ? '更新成功' : '创建成功');
+        onSuccess();
+      } else {
+        message.error('操作失败');
+      }
+    } catch (error: any) {
+      console.error('保存失败:', error);
+      message.error('请检查输入数据');
     }
-  } catch (error) {
-    console.error('提交失败:', error);
-    message.error('提交失败，请检查表单');
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-  // 上传文件变化
-  const handleUploadChange = ({ fileList: newFileList }: any) => {
-    setFileList(newFileList);
   };
-
-  const modalTitle = {
-    create: '新增商品',
-    edit: '编辑商品',
-    view: '查看商品'
-  }[type];
 
   const isView = type === 'view';
 
   return (
     <Modal
-      title={modalTitle}
       open={visible}
-      width={800}
+      title={type === 'create' ? '新增商品' : type === 'edit' ? '编辑商品' : '查看商品'}
+      okText="确认"
+      cancelText="取消"
       onCancel={onCancel}
-      footer={
-        isView ? (
-          <Button onClick={onCancel}>关闭</Button>
-        ) : (
-          <Space>
-            <Button onClick={onCancel}>取消</Button>
-            <Button 
-              type="primary" 
-              onClick={handleSubmit}
-              loading={loading}
-            >
-              {type === 'create' ? '创建' : '保存'}
-            </Button>
-          </Space>
-        )
-      }
-      destroyOnClose
+      onOk={handleSubmit}
+      width={800}
+      destroyOnHidden
+      maskClosable={false}
+      okButtonProps={{ hidden: isView }}
+      confirmLoading={loading}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        disabled={isView}
-      >
-        <Row gutter={24}>
-          {/* 基本信息 */}
-          <Col span={24}>
-            <Divider>基本信息</Divider>
-          </Col>
-          
+      <Form form={form} layout="vertical" disabled={isView}>
+         {/* 👇 添加这一行：隐藏的 id 字段 */}
+  <Form.Item name="id" noStyle>
+    <Input type="hidden" />
+  </Form.Item>
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label="商品名称"
@@ -206,211 +197,87 @@ const ProductModal: React.FC<ProductModalProps> = ({
               <Input placeholder="请输入商品名称" />
             </Form.Item>
           </Col>
-          
           <Col span={12}>
-            <Form.Item
-              label="商品价格"
-              name="price"
-              rules={[{ required: true, message: '请输入商品价格' }]}
-            >
-              <InputNumber
-                placeholder="请输入价格"
-                style={{ width: '100%' }}
-                min={0}
-                precision={2}
-                addonAfter="元"
-              />
-            </Form.Item>
-          </Col>
-          
-          <Col span={24}>
-            <Form.Item
-              label="商品描述"
-              name="description"
-            >
-              <TextArea 
-                rows={3} 
-                placeholder="请输入商品描述" 
-                maxLength={500}
-                showCount
-              />
-            </Form.Item>
-          </Col>
-          
-          <Col span={12}>
-            <Form.Item
-              label="品牌"
-              name="brand"
-            >
+            <Form.Item label="品牌" name="brand">
               <Input placeholder="请输入品牌" />
             </Form.Item>
           </Col>
-          
+        </Row>
+
+        <Row gutter={16}>
           <Col span={12}>
-            <Form.Item
-              label="产地"
-              name="placeOfOrigin"
-            >
+            <Form.Item label="产地" name="placeOfOrigin">
               <Input placeholder="请输入产地" />
             </Form.Item>
           </Col>
-
-          {/* 库存信息 */}
-          <Col span={24}>
-            <Divider>库存信息</Divider>
-          </Col>
-          
-          <Col span={8}>
-            <Form.Item
-              label="库存数量"
-              name="stock"
-              rules={[{ required: true, message: '请输入库存数量' }]}
-            >
-              <InputNumber
-                placeholder="库存数量"
-                style={{ width: '100%' }}
-                min={0}
-                precision={0}
-              />
-            </Form.Item>
-          </Col>
-          
-          <Col span={8}>
-            <Form.Item
-              label="商品等级"
-              name="level"
-            >
-              <Select placeholder="请选择等级">
-                <Option value={1}>普通</Option>
-                <Option value={2}>优质</Option>
-                <Option value={3}>精品</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-          
-          <Col span={8}>
-            <Form.Item
-              label="商品状态"
-              name="status"
-              valuePropName="checked"
-            >
-              <Switch
-                checkedChildren="上架"
-                unCheckedChildren="下架"
-              />
-            </Form.Item>
-          </Col>
-
-          {/* 时间信息 */}
-          <Col span={24}>
-            <Divider>时间信息</Divider>
-          </Col>
-          
           <Col span={12}>
-            <Form.Item
-              label="上架时间"
-              name="publishTime"
-            >
-              <DatePicker
-                showTime
-                style={{ width: '100%' }}
-                placeholder="请选择上架时间"
-              />
-            </Form.Item>
-          </Col>
-          
-          <Col span={12}>
-            <Form.Item
-              label="下架时间"
-              name="offlineTime"
-            >
-              <DatePicker
-                showTime
-                style={{ width: '100%' }}
-                placeholder="请选择下架时间"
-              />
-            </Form.Item>
-          </Col>
-
-          {/* 图片上传 */}
-          <Col span={24}>
-            <Divider>图片上传</Divider>
-            <Form.Item
-              label="商品主图"
-              name="image"
-            >
-              <UploadsApp />
-            </Form.Item>
-          </Col>
-
-          {/* 分类和标签 */}
-          <Col span={24}>
-            <Divider>分类与标签</Divider>
-          </Col>
-          
-          <Col span={8}>
-            <Form.Item
-              label="商品分类"
-              name="categoryId"
-            >
-              <Select
-                mode="multiple"
-                placeholder="请选择商品分类"
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label as string).toLowerCase().includes(input.toLowerCase())
-                }
-                options={categories.map(cat => ({
-                  value: cat.id,
-                  label: cat.name
-                }))}
-                disabled={isView}
-              />
-            </Form.Item>
-          </Col>
-          
-          <Col span={8}>
-            <Form.Item
-              label="商品标签"
-              name="tagId"
-            >
-              <Select
-                mode="multiple"
-                placeholder="请选择商品标签"
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label as string).toLowerCase().includes(input.toLowerCase())
-                }
-                options={tags.map(tag => ({
-                  value: tag.id,
-                  label: tag.name
-                }))}
-                disabled={isView}
-              />
-            </Form.Item>
-          </Col>
-          
-          <Col span={8}>
-            <Form.Item
-              label="所属仓库"
-              name="warehouseId"
-            >
-              <Select
-                mode="multiple"
-                placeholder="请选择所属仓库"
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label as string).toLowerCase().includes(input.toLowerCase())
-                }
-                options={warehouses.map(wh => ({
-                  value: wh.id,
-                  label: wh.name
-                }))}
-                disabled={isView}
-              />
+            <Form.Item label="商品等级" name="level">
+              <Input placeholder="请输入等级" />
             </Form.Item>
           </Col>
         </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="分类" name="categoryId">
+              <Select mode="multiple" placeholder="请选择分类" allowClear>
+                {categories.map(cat => (
+                  <Option key={cat.id} value={cat.id}>{cat.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          {type !== 'create' && data?.categoryName && (
+            <Col span={12}>
+              <Form.Item label="当前分类">
+                <div>{data.categoryName.join(', ')}</div>
+              </Form.Item>
+            </Col>
+          )}
+          <Col span={12}>
+            <Form.Item label="标签" name="tagId">
+              <TagSelect placeholder="请选择标签" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          {/* <Col span={12}>
+            <Form.Item label="销量" name="salesVolume">
+              <InputNumber style={{ width: '100%' }} min={0} placeholder="销量" />
+            </Form.Item>
+          </Col> */}
+          <Col span={12}>
+            <Form.Item label="发布状态" name="status" valuePropName="checked">
+              <Switch checkedChildren="上架" unCheckedChildren="下架" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="发布时间" name="publishTime">
+              <DatePicker showTime style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="下架时间" name="offlineTime">
+              <DatePicker showTime style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item label="商品描述" name="description">
+          <TextArea rows={4} placeholder="请输入商品描述" />
+        </Form.Item>
+
+        <Form.Item label="商品图片" name="image">
+          <UploadsApp maxCount={1} />
+        </Form.Item>
+
+        <Form.Item label="商品视频" name="video">
+          <UploadsApp maxCount={1} accept="video/*" />
+        </Form.Item>
       </Form>
     </Modal>
   );

@@ -1,5 +1,5 @@
 import type { TableColumnsType } from "antd";
-import type { SysRoleType } from "../../../../../../../api/main/type/SysRoleType";
+import type { SysRoleType } from "@/api/main/type/SysRoleType";
 
 export const RoleList = [
   {
