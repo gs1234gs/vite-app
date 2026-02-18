@@ -4,13 +4,15 @@
 }
 
 .aiChatContainer {
-  height: 600px; /* 固定高度 */
+  min-height: 940px;/* 固定高度 */
+   max-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
   border: 1px solid #e5e5e5;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
+
 }
 
 .aiHeader {
@@ -43,7 +45,8 @@
 }
 
 .aiMessages {
-  flex: 1 1 auto; /* 占满剩余空间 */
+  /* flex: 1 1 auto; 占满剩余空间 */
+   flex: 1;
   padding: 12px;
   overflow-y: auto;
   background: #f9f9f9;
@@ -140,9 +143,9 @@
 }
 
 /* 推荐商品区域 */
-/* 推荐商品区域 */
 .aiProductRecommendations {
-  max-height: 800px; /* 固定高度，超过滚动 */
+   /* max-height: 270px; 固定高度，超过滚动 */
+   flex: 1;
   overflow-y: auto;
   flex-shrink: 0;
   margin-top: 8px;
@@ -151,6 +154,10 @@
   scroll-behavior: smooth;
   transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1),
               box-shadow 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+               /* 下面是用于隐藏滚动条的代码 */
+  -ms-overflow-style: none;  /* IE 和 Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 .aiRecommendationCard {
@@ -172,7 +179,8 @@
 }
 
 .aiRecommendationsGrid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 

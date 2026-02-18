@@ -8,8 +8,10 @@ import ProductEditModal from './ProductEditModel/ProductEditModal';
 
 // 👇 导入 MyOrdersPage（请确认路径正确）
 import MyOrdersPage from './Order/MyOrdersPage';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [aiMessages, setAiMessages] = useState([
@@ -94,22 +96,14 @@ const HomePage = () => {
   }, [loadSpecialProducts]);
 
   // ================== 搜索 ==================
-  const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      message.warning('请输入搜索关键词');
-      return;
-    }
-    const res = await searchProductApi({
-      lastId: '',
-      pageSize: 10,
-      order: 'salesVolume_desc',
-      condition: { searchContent: searchQuery.trim() },
-    });
-    if (res?.rows) {
-      console.log('搜索结果:', res.rows);
-    }
-  };
+// HomePage.tsx 中的 handleSearch
+const handleSearch = (keyword: string) => {
+  if (!keyword.trim()) {
+    message.warning('请输入搜索关键词');
+    return;
+  }
+  navigate(`/search?q=${encodeURIComponent(keyword.trim())}`);
+};
 
   // ================== AI 助手 ==================
   const handleAiSend = () => {
@@ -226,7 +220,12 @@ const HomePage = () => {
 
               <div className="search-area">
                 <div className="search-container">
-                  <form onSubmit={handleSearch} className="search-form">
+                  <form 
+                   onSubmit={(e) => {
+                            e.preventDefault(); // 阻止表单默认提交（页面刷新）
+                            handleSearch(searchQuery); // 传入当前 state 中的搜索词
+                          }}
+                  className="search-form">
                     <select className="search-category" aria-label="商品分类">
                       <option value="goods">商品</option>
                       <option value="brand">品牌</option>

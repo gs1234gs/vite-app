@@ -100,6 +100,8 @@ export interface ProductVO extends BasePojo {
    * 分类名称
    */
   categoryName: string[];
+  //标签名称
+  tagNames:string[];
 
   /** 标签 id */
   tagId: string[];

@@ -31,7 +31,7 @@ import UploadsApp from '@/components/upload/UploadsFile';
 
 const DEFAULT_PAGE: PageType<any> = {
   pageNum: 1,
-  pageSize: 5,
+  pageSize: 10,
   condition: {},
 };
 
@@ -127,6 +127,7 @@ const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
         minPrice: '',
         maxPrice: '',
         categoryName: [],
+        tagNames: []
       },
     });
 
@@ -384,9 +385,9 @@ const transformToTreeData = (): DataNode[] => {
             <Input />
           </Form.Item>
 
-          <Form.Item name="skuCode" label="SKU 编码" rules={[{ required: true }]}>
+          {/* <Form.Item name="skuCode" label="SKU 编码" rules={[{ required: true }]}>
             <Input />
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item name="price" label="售价" rules={[{ required: true }]}>
             <Input />

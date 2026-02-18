@@ -6,6 +6,7 @@ import DynamicRoutes from "@/routes/DynamicRoutes";
 import React from "react";
 // import SystemIntro from "../components/SystemIntro/SystemIntro.tsx";
 const System = React.lazy(() => import("@/components/SystemIntro/SystemIntro"));
+const SearchResultsPage = React.lazy(() => import("@/components/layout/MainIndexLayoutComponents/content/main/Home/SearchPage/SearchResultsPage"));
 
 const router = createHashRouter(
   [
@@ -43,6 +44,11 @@ const router = createHashRouter(
     {
       path:'/system',
       element:<System />
+    }
+    ,
+    {
+     path: "/search",
+  element: <SearchResultsPage />
     }
 
   ]

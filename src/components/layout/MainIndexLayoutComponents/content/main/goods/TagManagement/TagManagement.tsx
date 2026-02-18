@@ -330,13 +330,13 @@ const TagManagement: React.FC = () => {
             <Input />
           </Form.Item>
 
-          <Form.Item
+          {/* <Form.Item
             label="编码"
             name="code"
             rules={[{ required: true, message: '请输入编码' }]}
           >
             <Input />
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item label="颜色" name="color">
             <Input placeholder="#FF9900" />

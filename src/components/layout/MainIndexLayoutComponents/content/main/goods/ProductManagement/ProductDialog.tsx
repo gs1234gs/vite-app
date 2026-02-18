@@ -21,6 +21,8 @@ import { findById as findProductById } from '@/api/goods/product/Product';
 import dayjs from 'dayjs';
 import UploadsApp from '@/components/upload/UploadsFile';
 import TagSelect from './TagSelect'; // 引入新的标签选择组件
+import type { TagVO } from '@/api/goods/tag/TagType';
+import useTag from '@/stores/goods/Tag';
 const { TextArea } = Input;
 const { Text } = Typography;
 const { Option } = Select;
@@ -46,7 +48,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const { findPageApi: findCategories, findByIdApi } = useCategory();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-
+const [tags, setTags] = useState<TagVO[]>([]);
   // 加载分类
   useEffect(() => {
     const fetchCategories = async () => {
@@ -80,7 +82,23 @@ const ProductModal: React.FC<ProductModalProps> = ({
     };
     fetchCategories();
   }, [findCategories]);
-
+useEffect(() => {
+  const fetchTags = async () => {
+    try {
+      const res = await useTag().findAllTagByApi({
+        pageNum: 1,
+        pageSize: 1000, // 一次性加载全部（如果不多）
+        condition: {} as TagVO,
+      });
+      if (res?.rows) {
+        setTags(res.rows);
+      }
+    } catch (err) {
+      console.error('获取标签失败', err);
+    }
+  };
+  fetchTags();
+}, []);
   // 回显商品数据
   useEffect(() => {
     if (type === 'create') {
@@ -234,11 +252,18 @@ const ProductModal: React.FC<ProductModalProps> = ({
               </Form.Item>
             </Col>
           )}
-          <Col span={12}>
-            <Form.Item label="标签" name="tagId">
-              <TagSelect placeholder="请选择标签" />
-            </Form.Item>
-          </Col>
+  <Col span={12}>
+    <Form.Item label="标签" name="tagId">
+      <TagSelect placeholder="请选择标签" />
+    </Form.Item>
+  </Col>
+  {type !== 'create' && data?.tagNames && (
+    <Col span={12}>
+      <Form.Item label="当前标签">
+        <div>{data.tagNames.join('，')}</div>
+      </Form.Item>
+    </Col>
+  )}
         </Row>
 
         <Row gutter={16}>
