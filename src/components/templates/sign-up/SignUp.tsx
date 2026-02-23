@@ -16,8 +16,8 @@ import { styled } from '@mui/material/styles';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
-import useSignUp from '../../../stores/SignInUp/SignUp';
-import type { SignUpType } from '../../../types/SignInUpType';
+import useSignUp from '@/stores/SignInUp/SignUp';
+import type { SignUpType } from '@/types/SignInUpType';
 
 // 卡片样式保持不变
 const Card = styled(MuiCard)(({ theme }) => ({

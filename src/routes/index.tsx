@@ -1,4 +1,4 @@
-import {  createHashRouter } from "react-router-dom";
+import {  createBrowserRouter } from "react-router-dom";
 import  LazyLoad  from "@/routes/LazyLoad";
 // import reactiveRouter from "./ReactiveRouter";
 import MainLayoutWrapper from "@/routes/MainLayoutWrapper";
@@ -8,7 +8,7 @@ import React from "react";
 const System = React.lazy(() => import("@/components/SystemIntro/SystemIntro"));
 const SearchResultsPage = React.lazy(() => import("@/components/layout/MainIndexLayoutComponents/content/main/Home/SearchPage/SearchResultsPage"));
 
-const router = createHashRouter(
+const router = createBrowserRouter(
   [
     {
       path: "/",
@@ -16,7 +16,7 @@ const router = createHashRouter(
     },
     {
       path: "/home",
-    
+  
       element:<LazyLoad loader={() => import("@/views/home/HomeIndex")} />,
       children: []
 

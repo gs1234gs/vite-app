@@ -12,6 +12,10 @@ interface ChatMessage {
   isUser: boolean;
 }
 
+interface AiChatBoxProps {
+  onClose?: () => void;
+}
+
 const quickQuestions = [
   "推荐一款性价比高的手机",
   "618有什么优惠活动？",
@@ -20,10 +24,10 @@ const quickQuestions = [
   "哪个品牌的洗衣机好？",
 ];
 
-const AiChatBox: React.FC = () => {
+const AiChatBox: React.FC<AiChatBoxProps> = ({ onClose }) => {
   const { recommendChatApi, conversationId, resetConversation } = useChat();
   const { findAllProductRecommendByIdsApi } = useRecommendProduct();
-const [isSending, setIsSending] = useState(false); // 👈 新增
+  const [isSending, setIsSending] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -44,107 +48,60 @@ const [isSending, setIsSending] = useState(false); // 👈 新增
     box.scrollTop = box.scrollHeight;
   }, [messages]);
 
-//   const handleSend = () => {
-//   if (!input.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim() || isSending) return;
 
-//   const userMsg: ChatMessage = { id: Date.now(), text: input, isUser: true };
-//   const aiMsg: ChatMessage = { id: Date.now() + Math.random(), text: "", isUser: false };
+    setIsSending(true);
+    const userMsg: ChatMessage = { id: Date.now(), text: input, isUser: true };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setRecommendedProducts([]);
+    setLoadingProducts(true);
 
-//   setMessages((prev) => [...prev, userMsg, aiMsg]);
-//   setInput("");
-//   setRecommendedProducts([]);
-//   setLoadingProducts(false);
+    try {
+      const res = await recommendChatApi({
+        conversationId: conversationId || null,
+        content: input,
+      });
 
-//   recommendChatApi(
-//     input,
-//     (chunk: string) => {
-//       // 用最新的 AI 消息 ID 更新
-//       setMessages((prev) => {
-//         const lastMsg = prev[prev.length - 1];
-//         if (lastMsg && !lastMsg.isUser) {
-//           return prev.map((msg, index) =>
-//             index === prev.length - 1 ? { ...msg, text: msg.text + chunk } : msg
-//           );
-//         }
-//         return prev;
-//       });
-//     },
-//     () => {
-//       console.log("✅ 推荐完成");
-//     },
-//     (err: any) => {
-//       message.error("推荐失败：" + (err.message || "请重试"));
-//     },
-//     async (productIds: string[]) => {
-//       if (productIds.length > 0) {
-//         setLoadingProducts(true);
-//         try {
-//           const products = await findAllProductRecommendByIdsApi(productIds);
-//           if (Array.isArray(products)) setRecommendedProducts(products);
-//         } catch (error) {
-//           console.error("加载推荐商品失败", error);
-//         } finally {
-//           setLoadingProducts(false);
-//         }
-//       }
-//     }
-//   );
-// };
-
-// AiChatBox.tsx
-
-const handleSend = async () => {
-  if (!input.trim() || isSending) return; // 👈 防止重复触发
-
-  setIsSending(true); // 🔒 锁定
-  const userMsg: ChatMessage = { id: Date.now(), text: input, isUser: true };
-  setMessages((prev) => [...prev, userMsg]);
-  setInput("");
-  setRecommendedProducts([]);
-  setLoadingProducts(true);
-
-  try {
-    const res = await recommendChatApi({
-      conversationId: conversationId || null,
-      content: input,
-    });
-
-    if (res?.content) {
-      let formattedContent = res.content;
-      const jsonMatch = formattedContent.match(/({.*?})/s);
-      if (jsonMatch) {
-        try {
-          const jsonStr = jsonMatch[1];
-          const jsonObj = JSON.parse(jsonStr);
-          if (Array.isArray(jsonObj.recommend_products)) {
-            const productIds = jsonObj.recommend_products;
-            const productNames = productIds.map((id: any) => `商品ID: ${id}`).join(", ");
-            formattedContent = formattedContent.replace(jsonStr, `推荐商品：${productNames}`);
+      if (res?.content) {
+        let formattedContent = res.content;
+        const jsonMatch = formattedContent.match(/({.*?})/s);
+        if (jsonMatch) {
+          try {
+            const jsonStr = jsonMatch[1];
+            const jsonObj = JSON.parse(jsonStr);
+            if (Array.isArray(jsonObj.recommend_products)) {
+              const productIds = jsonObj.recommend_products;
+              const productNames = productIds.map((id: any) => `商品ID: ${id}`).join(", ");
+              formattedContent = formattedContent.replace(jsonStr, `推荐商品：${productNames}`);
+            }
+          } catch (e) {
+            console.warn("无法解析 JSON:", e);
           }
-        } catch (e) {
-          console.warn("无法解析 JSON:", e);
+        }
+
+        const aiMsg: ChatMessage = { id: Date.now(), text: formattedContent, isUser: false };
+        setMessages((prev) => [...prev, aiMsg]);
+        
+        if (res.productIdList && Array.isArray(res.productIdList)) {
+          const products = await findAllProductRecommendByIdsApi(res.productIdList);
+          if (Array.isArray(products)) {
+            setRecommendedProducts(products);
+          }
         }
       }
-
-      const aiMsg: ChatMessage = { id: Date.now(), text: formattedContent, isUser: false };
-      setMessages((prev) => [...prev, aiMsg]);
-        const products = await findAllProductRecommendByIdsApi(res.productIdList);
-      console.log("product",products)
-        if (Array.isArray(products)) {
-          setRecommendedProducts(products);
-        }
+    } catch (err: any) {
+      message.error("推荐失败：" + (err.message || "请稍后重试"));
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now(), text: "抱歉，当前无法为您生成推荐。", isUser: false },
+      ]);
+    } finally {
+      setIsSending(false);
+      setLoadingProducts(false);
     }
-  } catch (err: any) {
-    message.error("推荐失败：" + (err.message || "请稍后重试"));
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now(), text: "抱歉，当前无法为您生成推荐。", isUser: false },
-    ]);
-  } finally {
-    setIsSending(false); // 🔓 解锁
-    setLoadingProducts(false);
-  }
-};
+  };
 
   const startNewChat = () => {
     resetConversation();
@@ -161,6 +118,13 @@ const handleSend = async () => {
 
   return (
     <div className={styles.containerWrapper}>
+      {/* 关闭按钮 */}
+      {onClose && (
+        <button className={styles.closeDrawerBtn} onClick={onClose}>
+          ✕
+        </button>
+      )}
+      
       <div className={styles.aiChatContainer}>
         {/* 头部 */}
         <div className={styles.aiHeader}>

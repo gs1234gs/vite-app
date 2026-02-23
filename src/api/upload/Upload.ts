@@ -6,7 +6,7 @@ import type { ResultT } from "../type/ResultType"
 
 const uploadApi = (data: FormData) : Promise<ResultT<Array<string>>> =>{
     return sendRequest<ResultT<Array<string>>>({
-        url:`api/upload-api/upload/image`,
+        url:`/api/upload-api/upload/image`,
         method:POST_METHOD,
         data:data
     })

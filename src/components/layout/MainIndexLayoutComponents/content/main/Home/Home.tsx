@@ -1,23 +1,22 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import './HomePage.css';
 import AiChatBox from './AiChatBox';
 import useRecommendProduct from '@/stores/goods/RecommendProduct';
 import type { ProductCustomerVO } from '@/api/goods/product/RecommendProductType';
 import { message } from 'antd';
 import ProductEditModal from './ProductEditModel/ProductEditModal';
-
-// 👇 导入 MyOrdersPage（请确认路径正确）
+import useProductCarousal from '@/stores/goods/ProductCarousel';
 import MyOrdersPage from './Order/MyOrdersPage';
 import { useNavigate } from 'react-router-dom';
+import type { ProductCarousalVO } from '@/api/goods/carousel/ProductCarouselType';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [aiMessages, setAiMessages] = useState([
-    { id: 1, text: '您好！我是京东AI助手...', isUser: false },
-  ]);
-  const [aiInput, setAiInput] = useState('');
+  
+  // AI 抽屉状态
+  const [showAiDrawer, setShowAiDrawer] = useState(false);
 
   // 商品状态
   const [subsidyProducts, setSubsidyProducts] = useState<ProductCustomerVO[]>([]);
@@ -29,12 +28,61 @@ const HomePage = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // 👇 控制底部 Tab 切换
+  // 底部 Tab 切换
   const [activeTab, setActiveTab] = useState<'home' | 'cart' | 'orders' | 'service' | 'profile'>('home');
 
+  // ============ 轮播图状态 ============
+  const [carouselList, setCarouselList] = useState<ProductCarousalVO[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+  const carouselTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
   const { loading, error, likeApi, searchProductApi, recommendApi } = useRecommendProduct();
+  const { findByType } = useProductCarousal();
 
-  // ================== 加载百亿补贴 & 秒杀 ==================
+  // ============ 加载轮播图 ============
+  const loadCarousel = useCallback(async () => {
+    try {
+      const res = await findByType(2);
+      if (res?.data && Array.isArray(res.data)) {
+        const filtered = res.data
+          .filter((item: ProductCarousalVO) => item.status === 1)
+          .sort((a: ProductCarousalVO, b: ProductCarousalVO) => a.sort - b.sort);
+        setCarouselList(filtered);
+        if (filtered.length > 0) {
+          setCurrentSlide(0);
+        }
+      }
+    } catch (err) {
+      console.error('加载轮播图失败:', err);
+      setCarouselList([]);
+    }
+  }, [findByType]);
+
+  // ============ 轮播图自动切换 ============
+  const startAutoPlay = useCallback(() => {
+    if (carouselTimerRef.current) {
+      clearInterval(carouselTimerRef.current);
+    }
+    if (!isHovering && carouselList.length > 1) {
+      carouselTimerRef.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % carouselList.length);
+      }, 3000);
+    }
+  }, [isHovering, carouselList.length]);
+
+  const stopAutoPlay = useCallback(() => {
+    if (carouselTimerRef.current) {
+      clearInterval(carouselTimerRef.current);
+      carouselTimerRef.current = null;
+    }
+  }, []);
+
+  const goToSlide = useCallback((index: number) => {
+    setCurrentSlide(index);
+  }, []);
+
+  // ============ 加载百亿补贴 & 秒杀 ============
   const loadSpecialProducts = useCallback(async () => {
     try {
       const subsidyRes = await searchProductApi({
@@ -57,7 +105,7 @@ const HomePage = () => {
     }
   }, [searchProductApi]);
 
-  // ================== 加载推荐商品 ==================
+  // ============ 加载推荐商品 ============
   const loadRecommendProducts = useCallback(
     async (type: 'recommend' | 'like') => {
       try {
@@ -80,13 +128,7 @@ const HomePage = () => {
     [recommendApi, likeApi]
   );
 
-  // ================== 全局刷新函数 ==================
-  const handleGlobalRefresh = useCallback(() => {
-    loadRecommendProducts(recommendType);
-    loadSpecialProducts();
-  }, [loadRecommendProducts, loadSpecialProducts, recommendType]);
-
-  // ================== 初始加载 ==================
+  // ============ 初始加载 ============
   useEffect(() => {
     loadRecommendProducts('recommend');
   }, [loadRecommendProducts]);
@@ -95,35 +137,35 @@ const HomePage = () => {
     loadSpecialProducts();
   }, [loadSpecialProducts]);
 
-  // ================== 搜索 ==================
-// HomePage.tsx 中的 handleSearch
-const handleSearch = (keyword: string) => {
-  if (!keyword.trim()) {
-    message.warning('请输入搜索关键词');
-    return;
-  }
-  navigate(`/search?q=${encodeURIComponent(keyword.trim())}`);
-};
+  useEffect(() => {
+    loadCarousel();
+  }, [loadCarousel]);
 
-  // ================== AI 助手 ==================
-  const handleAiSend = () => {
-    if (!aiInput.trim()) return;
-    const userMessage = { id: aiMessages.length + 1, text: aiInput, isUser: true };
-    const aiResponse = { id: aiMessages.length + 2, text: getAiResponse(aiInput), isUser: false };
-    setAiMessages([...aiMessages, userMessage, aiResponse]);
-    setAiInput('');
+  // ============ 轮播图自动播放控制 ============
+  useEffect(() => {
+    startAutoPlay();
+    return () => stopAutoPlay();
+  }, [currentSlide, isHovering, carouselList.length, startAutoPlay, stopAutoPlay]);
+
+  // 组件卸载时清理定时器
+  useEffect(() => {
+    return () => {
+      if (carouselTimerRef.current) {
+        clearInterval(carouselTimerRef.current);
+      }
+    };
+  }, []);
+
+  // ============ 搜索 ============
+  const handleSearch = (keyword: string) => {
+    if (!keyword.trim()) {
+      message.warning('请输入搜索关键词');
+      return;
+    }
+    navigate(`/search?q=${encodeURIComponent(keyword.trim())}`);
   };
 
-  const getAiResponse = (input: string) => {
-    const text = input.toLowerCase();
-    if (text.includes('手机')) return '根据您的需求，我为您推荐几款热销手机...';
-    if (text.includes('电脑') || text.includes('笔记本')) return '笔记本电脑专区正在促销...';
-    if (text.includes('优惠') || text.includes('折扣')) return '当前大促活动优惠多多...';
-    if (text.includes('物流') || text.includes('快递')) return '京东物流配送信息...';
-    return '感谢您的咨询！作为京东AI助手，我可以...';
-  };
-
-  // ================== 登录弹窗 ==================
+  // ============ 登录弹窗 ============
   const closeModal = () => setShowLoginModal(false);
 
   const openProductDetail = (id: string) => {
@@ -136,7 +178,7 @@ const handleSearch = (keyword: string) => {
     setSelectedProductId(null);
   };
 
-  // ================== 快速入口 ==================
+  // ============ 快速入口 ============
   const quickLinks = [
     {
       title: '💰 百亿补贴',
@@ -162,7 +204,7 @@ const handleSearch = (keyword: string) => {
     },
   ];
 
-  // ================== 渲染 ==================
+  // ============ 渲染 ============
   return (
     <div className="jd-homepage">
       {/* 顶部导航栏 - 仅首页显示 */}
@@ -179,8 +221,8 @@ const handleSearch = (keyword: string) => {
                 <button className="banner-btn">立即抢购</button>
               </div>
               <div className="banner-right">
-                <div className="promo-tag">惠乙会场 冲榜赢P55</div>
-                <div className="promo-tag">品牌联盟 低至5折</div>
+                <div className="promo-tag">惠乙会场 冲榜赢 P55</div>
+                <div className="promo-tag">品牌联盟 低至 5 折</div>
               </div>
             </div>
           </div>
@@ -191,28 +233,13 @@ const handleSearch = (keyword: string) => {
       <main className="main-content">
         {activeTab === 'home' && (
           <div className="content-wrapper">
-            {/* Logo和搜索栏 */}
+            {/* Logo 和搜索栏 */}
             <div className="header-section">
               <div className="logo-area">
                 <div className="logo">
                   <span className="logo-text">京东</span>
                 </div>
                 <div className="location" style={{ position: 'relative', display: 'inline-block' }}>
-                  <div
-                    onClick={handleGlobalRefresh}
-                    style={{
-                      position: 'absolute',
-                      top: '-20px',
-                      right: '0',
-                      fontSize: '18px',
-                      cursor: 'pointer',
-                      color: '#e40000',
-                      zIndex: 2,
-                    }}
-                    title="刷新全部商品数据"
-                  >
-                    🔄
-                  </div>
                   <span className="location-icon">📍</span>
                   <span>云南</span>
                 </div>
@@ -220,12 +247,13 @@ const handleSearch = (keyword: string) => {
 
               <div className="search-area">
                 <div className="search-container">
-                  <form 
-                   onSubmit={(e) => {
-                            e.preventDefault(); // 阻止表单默认提交（页面刷新）
-                            handleSearch(searchQuery); // 传入当前 state 中的搜索词
-                          }}
-                  className="search-form">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSearch(searchQuery);
+                    }}
+                    className="search-form"
+                  >
                     <select className="search-category" aria-label="商品分类">
                       <option value="goods">商品</option>
                       <option value="brand">品牌</option>
@@ -233,7 +261,7 @@ const handleSearch = (keyword: string) => {
                     </select>
                     <input
                       type="text"
-                      placeholder="显卡3060ti"
+                      placeholder="显卡 3060ti"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="search-input"
@@ -243,15 +271,18 @@ const handleSearch = (keyword: string) => {
                       搜索
                     </button>
                   </form>
-                  <button className="ai-search">
+                  <button 
+                    className="ai-search"
+                    onClick={() => setShowAiDrawer(true)}
+                  >
                     <span className="ai-icon">🤖</span>
-                    京言AI
+                    京言 AI
                   </button>
                 </div>
                 <div className="search-tags">
                   {[
                     '进口奶粉',
-                    '粮油9.9',
+                    '粮油 9.9',
                     '桌面加湿器',
                     '银饰',
                     '羽绒服',
@@ -276,34 +307,75 @@ const handleSearch = (keyword: string) => {
               </div>
             </div>
 
-            {/* 第一板块：AI对话框 + 轮播图 + 快速入口 */}
+            {/* 第一板块：轮播图和快速入口 */}
             <div className="main-layout">
-              <aside className="ai-sidebar">
-                <AiChatBox />
-              </aside>
-              <div className="content-area">
+              <div className="content-area" style={{ width: '100%' }}>
                 <div className="top-section">
+                  {/* ============ 轮播图区域 ============ */}
                   <section className="hero-banner">
                     <div className="banner-main">
-                      <div className="banner-content">
-                        <div className="banner-text">
-                          <h1>精选好物</h1>
-                          <h2>好物立刻抢购</h2>
-                          <p>低价直降 品质保障</p>
-                          <button className="cta-button">立即抢购 →</button>
+                      {carouselList.length > 0 ? (
+                        <>
+                          <div
+                            className="banner-content no-border"
+                            onMouseEnter={() => setIsHovering(true)}
+                            onMouseLeave={() => setIsHovering(false)}
+                          >
+                            <div className="banner-image-wrapper">
+                              <img
+                                src={carouselList[currentSlide]?.image || 'https://via.placeholder.com/800x300'}
+                                alt={carouselList[currentSlide]?.title || '促销商品'}
+                                onError={(e) =>
+                                  (e.currentTarget.src = 'https://via.placeholder.com/800x300')
+                                }
+                                className="banner-image"
+                              />
+                              <div className="banner-text-overlay">
+                                <h1 className="banner-title-overlay">{carouselList[currentSlide]?.title || '精选好物'}</h1>
+                                <h2 className="banner-desc-overlay">{carouselList[currentSlide]?.description || '好物立刻抢购'}</h2>
+                                <p className="banner-subtitle-overlay">低价直降 品质保障</p>
+                                <button 
+                                  className="cta-button-overlay"
+                                  onClick={() => {
+                                    const link = carouselList[currentSlide]?.link;
+                                    if (link) {
+                                      window.open(link, '_blank');
+                                    }
+                                  }}
+                                >
+                                  立即抢购 →
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="banner-indicators">
+                            {carouselList.map((_, index) => (
+                              <span
+                                key={index}
+                                className={`indicator ${index === currentSlide ? 'active' : ''}`}
+                                onClick={() => goToSlide(index)}
+                                style={{ cursor: 'pointer' }}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="banner-content no-border">
+                          <div className="banner-image-wrapper">
+                            <img
+                              src="https://images.unsplash.com/photo-1553356084-58ef4a67b2a7?w=800&h=300&fit=crop"
+                              alt="促销商品"
+                              className="banner-image"
+                            />
+                            <div className="banner-text-overlay">
+                              <h1 className="banner-title-overlay">精选好物</h1>
+                              <h2 className="banner-desc-overlay">好物立刻抢购</h2>
+                              <p className="banner-subtitle-overlay">低价直降 品质保障</p>
+                              <button className="cta-button-overlay">立即抢购 →</button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="banner-visual">
-                          <img
-                            src="https://images.unsplash.com/photo-1553356084-58ef4a67b2a7?w=400&h=250&fit=crop"
-                            alt="促销商品"
-                          />
-                        </div>
-                      </div>
-                      <div className="banner-indicators">
-                        {[1, 2, 3, 4, 5].map((_, index) => (
-                          <span key={index} className={`indicator ${index === 0 ? 'active' : ''}`}></span>
-                        ))}
-                      </div>
+                      )}
                     </div>
                   </section>
 
@@ -355,7 +427,7 @@ const handleSearch = (keyword: string) => {
               </div>
             </div>
 
-            {/* 推荐商品区域 */}
+            {/* 推荐商品区域 - 优化布局 */}
             <section className="recommendation-section">
               <div className="section-header">
                 <div className="header-left">
@@ -385,18 +457,22 @@ const handleSearch = (keyword: string) => {
                   onClick={() => loadRecommendProducts(recommendType)}
                   disabled={loading}
                 >
+                  <span>🔄</span>
                   {loading ? '刷新中...' : '换一批'}
                 </button>
               </div>
 
-              <div className="product-grid">
-                {currentRecommendProducts.length > 0 ? (
+              <div className={`product-grid ${currentRecommendProducts.length === 0 ? 'empty-state' : ''}`}>
+                {loading ? (
+                  <div className="loading-state">
+                    <span>⏳</span> 加载中...
+                  </div>
+                ) : currentRecommendProducts.length > 0 ? (
                   currentRecommendProducts.map((product) => (
                     <div
                       key={product.id}
                       className="product-card"
                       onClick={() => openProductDetail(product.id)}
-                      style={{ cursor: 'pointer' }}
                     >
                       <div className="product-image">
                         <img
@@ -409,17 +485,19 @@ const handleSearch = (keyword: string) => {
                         <div className="product-badge">
                           {Number(product.originalPrice) > Number(product.discountPrice)
                             ? `省¥${(Number(product.originalPrice) - Number(product.discountPrice)).toFixed(2)}`
-                            : '新品推荐'}
+                            : '新品'}
                         </div>
                       </div>
                       <div className="product-info">
-                        <h3 className="product-name">{product.name}</h3>
-                        <div className="product-rating">
-                          <span className="rating-stars">★★★★★</span>
-                          <span className="rating-score">4.8</span>
-                        </div>
-                        <div className="product-sales">
-                          {product.salesVolume ? product.salesVolume.toLocaleString() : '0'}+人买过
+                        <div>
+                          <h3 className="product-name">{product.name}</h3>
+                          <div className="product-rating">
+                            <span className="rating-stars">★★★★★</span>
+                            <span className="rating-score">4.8</span>
+                          </div>
+                          <div className="product-sales">
+                            {product.salesVolume ? product.salesVolume.toLocaleString() : '0'}+ 人买过
+                          </div>
                         </div>
                         <div className="product-price-row">
                           <span className="current-price">¥{product.discountPrice}</span>
@@ -428,10 +506,10 @@ const handleSearch = (keyword: string) => {
                       </div>
                     </div>
                   ))
-                ) : loading ? (
-                  <div>加载中...</div>
                 ) : (
-                  <div>暂无推荐商品</div>
+                  <div className="empty-state">
+                    <span>😕</span> 暂无推荐商品
+                  </div>
                 )}
               </div>
             </section>
@@ -495,25 +573,53 @@ const handleSearch = (keyword: string) => {
         onClose={closeProductModal}
       />
 
+      {/* AI 抽屉组件 */}
+      {showAiDrawer && (
+        <>
+          <div 
+            className="ai-drawer-overlay"
+            onClick={() => setShowAiDrawer(false)}
+          />
+          <div className={`ai-drawer ${showAiDrawer ? 'ai-drawer-open' : ''}`}>
+            <AiChatBox onClose={() => setShowAiDrawer(false)} />
+          </div>
+        </>
+      )}
+
       {/* 底部菜单 */}
       <div className="bottom-nav">
-        <div className="nav-item" onClick={() => setActiveTab('home')}>
+        <div 
+          className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
+          onClick={() => setActiveTab('home')}
+        >
           <div className="nav-icon">🏠</div>
           <div className="nav-label">首页</div>
         </div>
-        <div className="nav-item" onClick={() => setActiveTab('cart')}>
+        <div 
+          className={`nav-item ${activeTab === 'cart' ? 'active' : ''}`}
+          onClick={() => setActiveTab('cart')}
+        >
           <div className="nav-icon">🛒</div>
           <div className="nav-label">购物车</div>
         </div>
-        <div className="nav-item" onClick={() => setActiveTab('orders')}>
+        <div 
+          className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`}
+          onClick={() => setActiveTab('orders')}
+        >
           <div className="nav-icon">📦</div>
           <div className="nav-label">我的订单</div>
         </div>
-        <div className="nav-item" onClick={() => setActiveTab('service')}>
+        <div 
+          className={`nav-item ${activeTab === 'service' ? 'active' : ''}`}
+          onClick={() => setActiveTab('service')}
+        >
           <div className="nav-icon">💬</div>
           <div className="nav-label">客服</div>
         </div>
-        <div className="nav-item" onClick={() => setActiveTab('profile')}>
+        <div 
+          className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
           <div className="nav-icon">👤</div>
           <div className="nav-label">我的</div>
         </div>
