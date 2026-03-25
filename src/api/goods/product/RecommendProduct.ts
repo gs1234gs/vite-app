@@ -85,4 +85,87 @@ const findAllProductsByIds = (ids: string[]): Promise<ResultT<ProductCustomerVO[
     });
 };
 
-export { searchProduct, recommend, like, detail , findAllProductsByIds};
+
+/**
+ * 【新增】推荐商品滚动加载（基于 Redis 候选池）
+ * 对应后端: /recommendScroll?pageSize=20&refresh=false
+ */
+const recommendScroll = (
+  pageSize: number = 20,
+  refresh: boolean = false
+): Promise<ResultT<CursorPageResult<ProductCustomerVO>>> => {
+  return sendRequest<ResultT<CursorPageResult<ProductCustomerVO>>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/recommendScroll`,
+    method: GET_METHOD,
+    params: {
+      pageSize,
+      refresh
+    }
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
+
+/**
+ * 【新增】热门商品列表
+ * 对应后端: /hot
+ */
+const getHotProducts = (): Promise<ResultT<ProductCustomerVO[]>> => {
+  return sendRequest<ResultT<ProductCustomerVO[]>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/hot`,
+    method: GET_METHOD
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
+
+/**
+ * 【新增】最新上架商品列表
+ * 对应后端: /mostNew
+ */
+const getMostNewProducts = (): Promise<ResultT<ProductCustomerVO[]>> => {
+  return sendRequest<ResultT<ProductCustomerVO[]>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/mostNew`,
+    method: GET_METHOD
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
+
+/**
+ * 【新增】通用游标分页查询
+ * 对应后端: /findCursorEnd (POST)
+ * 适用于需要自定义复杂条件排序的分页场景
+ */
+const findCursor = (
+  data: RequestCursorPage<ProductCustomerVO>
+): Promise<ResultT<CursorPageResult<ProductCustomerVO>>> => {
+  return sendRequest<ResultT<CursorPageResult<ProductCustomerVO>>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/findCursorEnd`,
+    method: POST_METHOD,
+    data
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
+
+
+export { 
+  searchProduct, 
+  recommend, 
+  like, 
+  detail, 
+  findAllProductsByIds,
+  recommendScroll,      // 导出推荐滚动
+  getHotProducts,       // 导出热门
+  getMostNewProducts,   // 导出最新
+  findCursor            // 导出通用游标分页
+};

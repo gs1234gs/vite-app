@@ -8,7 +8,11 @@ import {
   recommend,
   like,
   detail,
-  findAllProductsByIds
+  findAllProductsByIds,
+  recommendScroll,
+  getHotProducts,
+  getMostNewProducts,
+  findCursor
 } from '@/api/goods/product/RecommendProduct';
 
 // 引入类型
@@ -132,6 +136,94 @@ function useRecommendProduct() {
     return null;
   }, []);
 
+   /**
+   * 【新增】推荐商品滚动加载（基于 Redis 池）
+   * 注意：滚动加载通常不弹出成功提示，以免打扰用户
+   */
+  const recommendScrollApi = useCallback(
+    async (pageSize: number = 20, refresh: boolean = false) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await recommendScroll(pageSize, refresh);
+        if (res.code === HttpStatusCode.Ok) {
+          setLoading(false);
+          return res.data;
+        }
+      } catch (err) {
+        setError(err as Error);
+        message.error('推荐流加载失败');
+      }
+      setLoading(false);
+      return null;
+    },
+    []
+  );
+
+  /**
+   * 【新增】获取热门商品
+   */
+  const hotProductsApi = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getHotProducts();
+      if (res.code === HttpStatusCode.Ok) {
+        setLoading(false);
+        return res.data;
+      }
+    } catch (err) {
+      setError(err as Error);
+      message.error('热门商品加载失败');
+    }
+    setLoading(false);
+    return null;
+  }, []);
+
+  /**
+   * 【新增】获取最新上架商品
+   */
+  const mostNewProductsApi = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getMostNewProducts();
+      if (res.code === HttpStatusCode.Ok) {
+        setLoading(false);
+        return res.data;
+      }
+    } catch (err) {
+      setError(err as Error);
+      message.error('最新商品加载失败');
+    }
+    setLoading(false);
+    return null;
+  }, []);
+
+  /**
+   * 【新增】通用游标分页查询
+   */
+  const findCursorApi = useCallback(
+    async (params: RequestCursorPage<ProductCustomerVO>) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await findCursor(params);
+        if (res.code === HttpStatusCode.Ok) {
+          setLoading(false);
+          return res.data;
+        }
+      } catch (err) {
+        setError(err as Error);
+        message.error('查询失败');
+      }
+      setLoading(false);
+      return null;
+    },
+    []
+  );
+
+
   return {
     loading,
     error,
@@ -139,7 +231,11 @@ function useRecommendProduct() {
     recommendApi,
     likeApi,
     detailApi,
-    findAllProductRecommendByIdsApi
+    findAllProductRecommendByIdsApi,
+    recommendScrollApi,
+    hotProductsApi,
+    mostNewProductsApi,
+    findCursorApi
   };
 }
 

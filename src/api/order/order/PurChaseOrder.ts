@@ -1,6 +1,7 @@
 import sendRequest from "../../axios";
 import { ORDER_API_PREFIX } from "../../prefix/PrefixApi";
 import {
+  DELETE_METHOD,
   GET_METHOD,
   POST_METHOD,
   PUT_METHOD,
@@ -112,7 +113,7 @@ const findByRows = (rows: number = 10): Promise<ResultT<PurChaseOrderVO[]>> => {
 const deletedById = (id:string): Promise<ResultT<boolean>> => {
   return sendRequest({
     url: `${ORDER_PREFIX}/deletedById/${id}`,
-    method: GET_METHOD,
+    method: DELETE_METHOD,
   }).then((res) => res.data);
 };
 

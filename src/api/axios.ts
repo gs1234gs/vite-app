@@ -22,7 +22,12 @@ sendRequest.interceptors.request.use(
     // console.log("点击");
     const token = cacheSession.getCache(SIGN_IN_CONST_TOKEN);
     //  console.log("token",token);
-    config.headers['Authorization'] = "Bearer " + token;
+   if (token) {
+      config.headers['Authorization'] = "Bearer " + token;
+    } else {
+      // 3. 如果没有 token，确保删除掉可能存在的旧 Header (防止污染)
+      delete config.headers['Authorization'];
+    }
     return config;
   },
   (error) => {

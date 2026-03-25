@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate ,useLocation} from "react-router-dom";
 import { cacheSession } from "@/utils/cache";
 import { SIGN_IN_CONST_TOKEN } from "@/const/SignInConst";
 import { SYSTEM_MENU_BAR_CONST_KEY } from "@/const/SiderBarConst";
