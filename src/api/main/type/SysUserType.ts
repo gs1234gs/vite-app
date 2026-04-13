@@ -14,9 +14,10 @@ export interface SysUserType {
   delFlag?: number;
   loginTime?: string;
   createTime?: string;
-  creatorId?: number;
-  updaterId?: number;
+  creator?: number;
+  updater?: number;
   updateTime?: string;
   remark?: string;
-  roleIdList?:[]
+  roleIdList?: [];
+  tenantId?: number | string;
 }

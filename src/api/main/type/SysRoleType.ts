@@ -27,13 +27,13 @@ export interface SysRoleType {
   delFlag?: number;
 
   /** 创建者id */
-  creatorId?: string; // BigInteger → string
+  creator?: string; // BigInteger → string
 
   /** 创建时间 */
   createTime?: string; // LocalDateTime → string
 
   /** 更新者id */
-  updaterId?: string; // BigInteger → string
+  updater?: string; // BigInteger → string
 
   /** 更新时间 */
   updateTime?: string; // LocalDateTime → string

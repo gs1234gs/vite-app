@@ -24,14 +24,26 @@ const findById = (id:number) =>{
     .catch(err=>{throw err})
 }
 
-const findSignInUserById = () =>{
+// 获取当前登录用户信息
+const findSignInUserById = () => {
     return sendRequest({
-        url:`${SYS_USER_PREFIX}/findById`,
-        method:GET_METHOD,
+        url: `${SYS_USER_PREFIX}/findBySignInUserId`,
+        method: GET_METHOD,
     })
-    .then(res=>res.data)
-    .catch(err=>{throw err})
-}
+    .then(res => res)
+    .catch(err => { throw err });
+};
+
+// 更新当前登录用户信息
+const updateSignInUser = (data: SysUserType) => {
+    return sendRequest({
+        url: `${SYS_USER_PREFIX}/updateSignInUser`,
+        method: PUT_METHOD,
+        data: data
+    })
+    .then(res => res)
+    .catch(err => { throw err });
+};
 const findByNoId = () =>{
     return sendRequest({
         url:`${SYS_USER_PREFIX}/findById`,
@@ -79,4 +91,4 @@ const save = (data:SysUserType) =>{
     .catch(err=>{throw err})
 }
 
-export {findPage,findById,deleteById,updateUserById,findByNoId,deleteUserByIds,save,findSignInUserById}
+export {findPage,findById,deleteById,updateUserById,findByNoId,deleteUserByIds,save,findSignInUserById,updateSignInUser}

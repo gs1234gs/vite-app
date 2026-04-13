@@ -1,0 +1,405 @@
+/* src/pages/SearchResultsPage.css */
+
+.search-results-page {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column; /* 确保页面内容按列排列 */
+}
+
+/* 容器：内容最大宽度1240px，居中 */
+.search-results-page .container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+  flex: 1; /* 让容器占据剩余空间 */
+  display: flex;
+  flex-direction: column; /* 主内容区域也按列排列 */
+}
+
+/* ----- 顶部导航栏（风格）----- */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 8px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0; /* 导航栏不收缩 */
+}
+
+/* LOGO 区域 */
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-jd {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e4393c;
+  line-height: 1;
+  text-decoration: none;
+}
+.plus-tag {
+  background: #e4393c;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* 搜索框区域 - 一体化设计，类似 */
+.search-box {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 640px;
+  margin: 0 16px;
+}
+/* 输入框包装器：右侧无圆角，去掉右边框 */
+.search-box .ant-input-affix-wrapper {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+  height: 40px;
+  box-shadow: none;
+  border-color: #e4393c;
+}
+.search-box .ant-input-affix-wrapper:hover,
+.search-box .ant-input-affix-wrapper:focus,
+.search-box .ant-input-affix-wrapper-focused {
+  border-color: #e4393c;
+  box-shadow: 0 0 0 2px rgba(228,57,60,0.1);
+}
+/* 搜索按钮：左侧无圆角，红 */
+.search-box .search-button {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  height: 40px;
+  background-color: #e4393c;
+  border-color: #e4393c;
+  color: #fff;
+  font-weight: 500;
+  padding: 0 20px;
+  margin-left: 0 !important; /* 覆盖内联 */
+}
+.search-box .search-button:hover {
+  background-color: #c62f2f;
+  border-color: #c62f2f;
+}
+
+/* 右侧用户链接 */
+.user-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 14px;
+}
+.user-links a {
+  color: #333;
+  text-decoration: none;
+}
+.user-links a:hover {
+  color: #e4393c;
+}
+
+/* 更多下拉菜单触发器 */
+.more-link {
+  color: #666;
+  cursor: pointer;
+}
+
+/* ----- 主体内容容器 ----- */
+.main-content {
+  max-width: 1240px;
+  margin: 16px auto 0;
+  padding: 0 16px;
+  flex: 1; /* 主内容区域占据剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 搜索标题 */
+.search-title {
+  margin: 16px 0 24px;
+}
+.search-title h4 {
+  font-size: 22px;
+  font-weight: 500;
+  color: #222;
+  margin: 0;
+}
+.search-title span {
+  color: #e4393c;
+  font-weight: 600;
+}
+
+/* ----- 筛选栏（风格）----- */
+.filter-bar {
+  background: white;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  flex-shrink: 0; /* 筛选栏不收缩 */
+}
+.category-label {
+  font-size: 14px;
+  color: #666;
+  margin-right: 12px;
+  white-space: nowrap;
+}
+/* 品牌标签样式 */
+.brand-tag {
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  background: #fafafa;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #333;
+}
+.brand-tag:hover {
+  border-color: #e4393c;
+  color: #e4393c;
+  background: #fff;
+}
+/* 排序标签 */
+.sort-tag {
+  padding: 5px 16px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sort-tag:hover {
+  background: #eee;
+}
+.sort-tag.active {
+  background: #e4393c;
+  color: white;
+}
+
+/* 价格下拉框 */
+.price-select .ant-select-selector {
+  border-radius: 16px !important;
+  border: 1px solid #f0f0f0 !important;
+  background: #fafafa;
+}
+
+/* --- 新增：商品列表容器 --- */
+.products-container {
+  flex: 1; /* 让商品容器占据 main-content 的剩余空间 */
+  min-height: 400px; /* 提供一个稳定的最小高度，与JSX中的Spin容器保持一致 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----- 商品卡片（卡片风格）----- */
+.product-grid {
+  margin-top: 8px;
+  flex: 1; /* 让商品网格占据容器剩余空间 */
+  display: flex;
+  flex-wrap: wrap; /* 确保商品卡片能换行 */
+  align-content: flex-start; /* 防止最后一行居中 */
+}
+.product-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  border: 1px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  background-color: #fff; /* 确保卡片背景为白色 */
+  height: 100%; /* 让卡片高度一致 */
+  display: flex;
+  flex-direction: column;
+}
+.product-card:hover {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-color: #fff;
+  transform: translateY(-2px);
+}
+/* 图片容器 - 1:1 比例 */
+.product-image {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* 1:1 */
+  overflow: hidden;
+  background: #fff;
+  flex-shrink: 0; /* 防止图片容器被压缩 */
+}
+.product-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 改为 contain 以完整展示图片，避免裁剪 */
+  transition: scale 0.3s;
+  background-color: #f8f8f8; /* 添加背景色，防止图片加载时露出透明 */
+}
+.product-card:hover .product-image img {
+  scale: 1.02;
+}
+/* 折扣标 */
+.discount-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #e4393c;
+  color: #fff;
+  border: none;
+  font-weight: 500;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 12px;
+  z-index: 2;
+}
+/* 销量位置调整 */
+.sales-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: #999;
+  font-size: 12px;
+  padding: 0 8px 4px 8px; /* 添加内边距 */
+}
+/* 卡片内容区 */
+.card-content {
+  padding: 8px 12px 12px;
+  flex-grow: 1; /* 内容区填充剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+/* 商品标题 */
+.product-title {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+  line-height: 1.4;
+  height: 40px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+/* 店铺/描述 */
+.shop-name {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 8px;
+  display: block;
+}
+/* 价格区域 */
+.price-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto; /* 将价格推到底部 */
+}
+.current-price {
+  color: #e4393c;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+.current-price small {
+  font-size: 14px;
+  font-weight: 500;
+}
+.original-price {
+  color: #999;
+  font-size: 13px;
+  text-decoration: line-through;
+}
+/* 加购按钮 */
+.cart-action-btn {
+  color: #e4393c;
+  border: 1px solid #ffcece;
+  border-radius: 18px;
+  padding: 4px 12px;
+  height: auto;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.cart-action-btn:hover {
+  background: #e4393c;
+  color: white !important;
+  border-color: #e4393c;
+}
+
+/* 无结果 */
+.no-results {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 12px;
+  color: #999;
+  font-size: 16px;
+}
+.no-results .anticon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #ddd;
+}
+
+/* 加载更多 */
+.load-more {
+  text-align: center;
+  margin: 40px 0;
+  flex-shrink: 0; /* 加载更多按钮不收缩 */
+}
+.load-more button {
+  width: 200px;
+  height: 44px;
+  border-radius: 22px;
+  border: none;
+  background: #fff;
+  color: #e4393c;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.load-more button:hover {
+  background: #e4393c;
+  color: #fff;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 12px 16px;
+  }
+  .search-box {
+    order: 3;
+    max-width: 100%;
+    margin: 0 16px; /* 添加左右间距 */
+  }
+  .user-links {
+    gap: 12px;
+  }
+  .filter-bar .ant-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .filter-bar .ant-col {
+    flex: 0 0 100% !important;
+    width: 100%;
+  }
+  .filter-bar .ant-col[style*="flex: 0 0 200px"] {
+    text-align: left; /* 移动端价格筛选左对齐 */
+  }
+  .filter-bar .ant-col[style*="flex: 0 0 280px"] {
+    text-align: left; /* 移动端排序标签左对齐 */
+  }
+}

@@ -2,9 +2,9 @@ import LazyLoad from "@/routes/LazyLoad";
 
 export default {
   path: 'system/user',
-  element:  <LazyLoad
+  element: <LazyLoad
     loader={() =>
-      import("@/components/layout/MainIndexLayoutComponents/content/main/system/UserManagement/UserManagement")
+      import("@/components/layout/content/main/system/UserManagement/UserManagement")
     }
   />
 };

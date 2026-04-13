@@ -12,7 +12,8 @@ import {
   recommendScroll,
   getHotProducts,
   getMostNewProducts,
-  findCursor
+  findCursor,
+  likeScroll
 } from '@/api/goods/product/RecommendProduct';
 
 // 引入类型
@@ -223,6 +224,30 @@ function useRecommendProduct() {
     []
   );
 
+  /**
+   * 【新增】猜你喜欢滚动加载（基于 Redis 池）
+   * 注意：滚动加载通常不弹出成功提示，以免打扰用户
+   */
+  const likeScrollApi = useCallback(
+    async (offset: number = 0, pageSize: number = 10, refresh: boolean = false) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await likeScroll(offset, pageSize, refresh);
+        if (res.code === HttpStatusCode.Ok) {
+          setLoading(false);
+          return res.data as ProductCustomerVO[];
+        }
+      } catch (err) {
+        setError(err as Error);
+        message.error('猜你喜欢加载失败');
+      }
+      setLoading(false);
+      return null;
+    },
+    []
+  );
+
 
   return {
     loading,
@@ -235,7 +260,8 @@ function useRecommendProduct() {
     recommendScrollApi,
     hotProductsApi,
     mostNewProductsApi,
-    findCursorApi
+    findCursorApi,
+    likeScrollApi
   };
 }
 

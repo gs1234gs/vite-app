@@ -157,6 +157,30 @@ const findCursor = (
     });
 };
 
+/**
+ * 【新增】猜你喜欢滚动加载（基于 Redis 候选池）
+ * 对应后端: /likeScroll?offset=0&pageSize=10&refresh=false
+ */
+const likeScroll = (
+  offset: number = 0,
+  pageSize: number = 10,
+  refresh: boolean = false
+): Promise<ResultT<ProductCustomerVO[]>> => {
+  return sendRequest<ResultT<ProductCustomerVO[]>>({
+    url: `${RECOMMEND_PRODUCT_PREFIX}/likeScroll`,
+    method: GET_METHOD,
+    params: {
+      offset,
+      pageSize,
+      refresh
+    }
+  })
+    .then(res => res.data)
+    .catch(err => {
+      throw err;
+    });
+};
+
 
 export { 
   searchProduct, 
@@ -167,5 +191,6 @@ export {
   recommendScroll,      // 导出推荐滚动
   getHotProducts,       // 导出热门
   getMostNewProducts,   // 导出最新
-  findCursor            // 导出通用游标分页
+  findCursor,           // 导出通用游标分页
+  likeScroll            // 导出猜你喜欢滚动
 };

@@ -442,7 +442,7 @@ export default function JoySignInSideTemplate() {
                 <IconButton variant="soft" color="primary" size="sm">
                   <BadgeRoundedIcon />
                 </IconButton>
-                <Typography level="title-lg">公司 Logo</Typography>
+                <Typography level="title-lg">滇西集团</Typography>
               </Box>
               <ColorSchemeToggle />
             </Box>

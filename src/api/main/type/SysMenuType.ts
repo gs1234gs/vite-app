@@ -14,10 +14,11 @@ export interface SysMenuType{
     status?:number,
     perms?:string,
     icon?:string,
-    creatorId?:number,
+    creator?:number,
     createTime?:string,
-    updaterId?:number,
+    updater?:number,
     updateTime?:string,
-    remark?:string
+    remark?:string,
+    delFlag?:number
 
 }
