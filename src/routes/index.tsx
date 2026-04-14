@@ -22,6 +22,10 @@ const router = createBrowserRouter(
       element: <LazyLoad loader={() => import("@/components/templates/sign-up/SignUp")} />,
     },
     {
+      path: "/forgot-password",
+      element: <LazyLoad loader={() => import("@/components/templates/forgot-password/ForgotPassword")} />,
+    },
+    {
       path: "/main/*",
       element: <MainLayoutWrapper />,
       children: [{

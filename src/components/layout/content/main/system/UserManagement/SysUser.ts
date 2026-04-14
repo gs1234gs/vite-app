@@ -9,7 +9,8 @@ export const UserList = [
         rules: {
             required: true,
             message: "请输入用户名"
-        }
+        },
+        disabled: true // 编辑时禁用用户名修改
     },
     {
         label: "头像",
@@ -84,6 +85,38 @@ export const UserList = [
             { label: "启用", value: 0 },
             { label: "禁用", value: 1 }
         ]
+    },
+    {
+        label: "重置密码",
+        name: "password",
+        type: "password",
+        editOnly: true, // 仅在编辑时显示
+        placeholder: "留空表示不修改密码"
+    },
+    {
+        label: "确认密码",
+        name: "confirmPassword",
+        type: "password",
+        editOnly: true, // 仅在编辑时显示
+        dependencies: ["password"],
+        rules: (form: any) => ({
+            validator: (_rule: any, value: any) => {
+                const password = form.getFieldValue('password');
+                // 如果两个字段都为空，通过校验
+                if (!password && !value) {
+                    return Promise.resolve();
+                }
+                // 如果只填了一个，提示错误
+                if (!password || !value) {
+                    return Promise.reject(new Error('请同时填写密码和确认密码'));
+                }
+                // 两次密码不一致
+                if (password !== value) {
+                    return Promise.reject(new Error('两次输入的密码不一致'));
+                }
+                return Promise.resolve();
+            }
+        })
     }
 ];
 export interface DataType extends SysUserType {

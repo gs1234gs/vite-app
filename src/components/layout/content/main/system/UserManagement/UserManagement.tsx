@@ -98,10 +98,13 @@ console.log("del")
       const tenantId = response.tenant?.id;
       
       // 设置表单值，包含转换后的角色ID列表和租户ID
+      // 注意：密码字段不回显，显式设置为空字符串
       form.setFieldsValue({
         ...response,
         roleIdList,
-        tenantId
+        tenantId,
+        password: '',
+        confirmPassword: ''
       });
     });
     
@@ -137,14 +140,23 @@ const handleFind = ({
         ? { ...currentRecord, ...values }
         : values;
       
-      // 删除 key 字段（Ant Design Table 内部使用，不应传给后端）
-      const { key, ...dataToSend } = submitData;
+      // 删除 key 和 confirmPassword 字段（不应传给后端）
+      const { key, confirmPassword, ...dataToSend } = submitData;
+      
+      // 如果是编辑模式且密码为空，则传递 null 表示不修改密码
+      if (isEdit && (!dataToSend.password || dataToSend.password.trim() === '')) {
+        dataToSend.password = null;
+      }
       
       // 调用保存接口（编辑和新增共用同一个接口）
       await saveApi(dataToSend);
       
       // 关闭弹窗并刷新列表
       setIsModalOpen(false);
+      
+      // 清空密码字段
+      form.setFieldsValue({ password: '', confirmPassword: '' });
+      
       findPageApi(pageType);
     } catch (error) {
       console.log('校验失败', error);
@@ -152,6 +164,9 @@ const handleFind = ({
   };
     const handleModalCancel = () => {
     setIsModalOpen(false);
+    
+    // 清空密码字段
+    form.setFieldsValue({ password: '', confirmPassword: '' });
   };
 
  const dataSource = sysUserList?.rows?.map((item: any) => ({

@@ -6,7 +6,8 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-/* 👇 添加这两行 👇 */
+    /* 👇 Adding these two lines 👇 */
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

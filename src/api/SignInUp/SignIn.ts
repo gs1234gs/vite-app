@@ -17,5 +17,13 @@ const signIn = (data: SignInType) => {
   })
 }
 
+// 忘记密码 - 重置密码（简化为一步）
+export const forgotPasswordReset = (data: { username: string; password: string }) => {
+  return sendRequest({
+    url: `${SYS_API_PREFIX}/reset/forget`,
+    method: POST_METHOD,
+    data: data,
+  });
+};
 
 export default signIn;

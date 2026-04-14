@@ -175,6 +175,11 @@ useEffect(() => {
         initialValues={{ status: 1 }}
       >
         {formItem.map((item: any) => {
+          // 如果字段仅在编辑时显示，且当前不是编辑模式，则跳过
+          if (item.editOnly && !isEdit) {
+            return null;
+          }
+
           if (item.type === "input") {
             return (
               <Form.Item
@@ -184,12 +189,33 @@ useEffect(() => {
                 rules={[item.rules]}
               >
                 <Input 
-                  placeholder={`请输入${item.label}`}
+                  placeholder={item.placeholder || `请输入${item.label}`}
                   addonAfter={item.addonAfter}
                   type={item.inputType || "text"}
                   min={item.min}
                   max={item.max}
                   step={item.step}
+                  disabled={item.disabled}
+                />
+              </Form.Item>
+            );
+          }
+
+          if (item.type === "password") {
+            return (
+              <Form.Item
+                key={item.name}
+                label={item.label}
+                name={item.name}
+                rules={
+                  item.dependencies 
+                    ? [item.rules(form)]
+                    : [item.rules]
+                }
+              >
+                <Input.Password 
+                  placeholder={item.placeholder || `请输入${item.label}`}
+                  disabled={item.disabled}
                 />
               </Form.Item>
             );

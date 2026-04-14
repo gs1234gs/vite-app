@@ -68,7 +68,7 @@ const customTheme = extendTheme({ defaultColorScheme: 'dark' } as any);
 // 轮播图组件
 function Carousel({ images }: { images: ProductCarousalVO[] }) {
   const [currentIndex, setCurrentIndex] = React.useState(0);
-  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const timerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   // 清理定时器
   const clearTimer = () => {

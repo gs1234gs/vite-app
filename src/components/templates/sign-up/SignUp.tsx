@@ -18,6 +18,7 @@ import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
 import useSignUp from '@/stores/SignInUp/SignUp';
 import type { SignUpType } from '@/types/SignInUpType';
+import { message } from 'antd';
 
 // 卡片样式保持不变
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -139,6 +140,12 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     };
     try {
       const res = await signUpApi(data);
+      if(res.code === 200 ){
+        message.success(res.msg)
+      }
+      else{
+        message.error(res.msg)
+      }
       console.log('注册成功返回：', res);
       // 可以在这里跳转页面或者显示提示
     } catch (err) {

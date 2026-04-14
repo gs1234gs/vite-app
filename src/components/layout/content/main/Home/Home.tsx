@@ -39,7 +39,7 @@ const HomePage = () => {
   const [carouselList, setCarouselList] = useState<ProductCarousalVO[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
-  const carouselTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const carouselTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const {
     loading,
@@ -56,9 +56,9 @@ const HomePage = () => {
 
   // ============ 浏览记录相关 Refs ============
   const recordedProductsRef = useRef<Set<string>>(new Set());
-  const timerMapRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const timerMapRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const pendingRecordsRef = useRef<UserBrowseSaveVO[]>([]);
-  const flushTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const productRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -242,6 +242,7 @@ const HomePage = () => {
       
       // 如果是"猜你喜欢"模式，调用 likeScrollApi
       if (recommendType === 'like') {
+        console.log('[推荐流] 调用猜你喜欢 API, recommendType:', recommendType);
         // 计算 offset：刷新时从 0 开始，否则根据当前已加载的数量计算
         const offset = isRefresh ? 0 : currentRecommendProducts.length;
         const res = await likeScrollApi(offset, 10, isRefresh);
@@ -263,6 +264,7 @@ const HomePage = () => {
       }
       
       // "为你推荐"模式的原有逻辑
+      console.log('[推荐流] 调用为你推荐 API, recommendType:', recommendType);
       if (isRefresh) {
         setIsFallbackMode(false); setFallbackCursor(null); setScrollPage(0); shouldFallback = false;
       }
@@ -299,6 +301,16 @@ const HomePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ============ 监听 recommendType 变化，自动加载对应数据 ============
+  useEffect(() => {
+    // 跳过首次渲染（已在上面的 useEffect 中处理）
+    if (hotProducts.length === 0 && newProducts.length === 0) return;
+    
+    console.log('[Tab切换] recommendType 变更为:', recommendType);
+    loadMoreRecommendations(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recommendType]);
+
   const startAutoPlay = useCallback(() => {
     if (carouselTimerRef.current) clearInterval(carouselTimerRef.current);
     if (!isHovering && carouselList.length > 1) {
@@ -323,7 +335,7 @@ const HomePage = () => {
   }, [currentSlide, isHovering, carouselList.length, startAutoPlay, stopAutoPlay]);
 
   useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout | null = null;
+    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
     const handleScroll = () => {
       if (scrollTimeout) return;
       scrollTimeout = setTimeout(() => {
@@ -565,8 +577,8 @@ const HomePage = () => {
               <div className="section-header">
                 <div className="header-left">
                   <div className="recommend-tabs">
-                    <button className={`tab-btn ${recommendType === 'scroll' ? 'active' : ''}`} onClick={() => { if (recommendType !== 'scroll') { setRecommendType('scroll'); loadMoreRecommendations(true); } }}>为你推荐</button>
-                    <button className={`tab-btn ${recommendType === 'like' ? 'active' : ''}`} onClick={() => { if (recommendType !== 'like') { setRecommendType('like'); setLoadingMore(true); likeApi().then(data => { if (data) { setCurrentRecommendProducts(data); setHasMore(false); setIsFallbackMode(false); } setLoadingMore(false); }); } }}>猜你喜欢</button>
+                    <button className={`tab-btn ${recommendType === 'scroll' ? 'active' : ''}`} onClick={() => setRecommendType('scroll')}>为你推荐</button>
+                    <button className={`tab-btn ${recommendType === 'like' ? 'active' : ''}`} onClick={() => setRecommendType('like')}>猜你喜欢</button>
                   </div>
                 </div>
                 <button className="refresh-btn" onClick={() => loadMoreRecommendations(true)} disabled={loadingMore}><span>🔄</span>{loadingMore ? '加载中...' : '换一批'}</button>

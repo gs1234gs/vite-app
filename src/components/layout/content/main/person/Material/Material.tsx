@@ -53,7 +53,7 @@ const Material: React.FC = () => {
       setLoading(true);
       
       // 只提交允许修改的字段
-      const submitData = {
+      const submitData: any = {
         nickName: values.nickName,
         email: values.email,
         phoneNumber: values.phoneNumber,
@@ -62,8 +62,18 @@ const Material: React.FC = () => {
         remark: values.remark,
       };
 
+      // 如果填写了密码，则传递密码；否则传递 null 表示不修改
+      if (values.password && values.password.trim() !== '') {
+        submitData.password = values.password;
+      } else {
+        submitData.password = null;
+      }
+
       await updateSignInUserApi(submitData);
       message.success('个人资料更新成功');
+      
+      // 清空密码字段
+      form.setFieldsValue({ password: '', confirmPassword: '' });
     } catch (error) {
       message.error('更新失败，请重试');
     } finally {
@@ -173,6 +183,56 @@ const Material: React.FC = () => {
                 rows={1}
                 maxLength={200}
                 showCount
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* 密码重置区域 */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item 
+              label="重置密码" 
+              name="password"
+              rules={[
+                { min: 6, message: '密码长度不能少于6个字符' },
+                { max: 20, message: '密码长度不能超过20个字符' }
+              ]}
+            >
+              <Input.Password 
+                placeholder="留空表示不修改密码" 
+              />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item 
+              label="确认密码" 
+              name="confirmPassword"
+              dependencies={['password']}
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const password = getFieldValue('password');
+                    // 如果两个字段都为空，通过校验
+                    if (!password && !value) {
+                      return Promise.resolve();
+                    }
+                    // 如果只填了一个，提示错误
+                    if (!password || !value) {
+                      return Promise.reject(new Error('请同时填写密码和确认密码'));
+                    }
+                    // 两次密码不一致
+                    if (password !== value) {
+                      return Promise.reject(new Error('两次输入的密码不一致'));
+                    }
+                    return Promise.resolve();
+                  },
+                }),
+              ]}
+            >
+              <Input.Password 
+                placeholder="请再次输入密码" 
               />
             </Form.Item>
           </Col>

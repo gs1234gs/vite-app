@@ -11,7 +11,7 @@ const signUp = (data: SignInType) => {
         method: POST_METHOD,
         data: data,
     }).then(res => {
-        return res;
+        return res.data;
     }).catch(err => {
         throw err;
     })

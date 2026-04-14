@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import signUp from '@/api/SignInUp/SignUp';
 import type { SignUpType } from "@/types/SignInUpType";
+import { message } from 'antd';
 // import useSysMenu from '../main/SysMenu';
 // import { cacheSession } from '@/utils/cache';
 // import { SIGN_IN_CONST_TOKEN } from '@/const/SignInConst';
@@ -21,6 +22,7 @@ function useSignUp() {
             //   if(res.data.code === 200){
             //     sysMenuApi();
             //   }
+            
             return res;
         } catch (err) {
             setError(err as Error);
