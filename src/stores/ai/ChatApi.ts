@@ -275,10 +275,10 @@ function useChat() {
     try {
       const res = await deleteChatById(id);
       if (res.code === 200) {
-        message.success(res.msg || "删除成功");
+        // message.success(res.msg || "删除成功");
         return res;
       } else {
-        message.error(res.msg || "删除失败");
+        // message.error(res.msg || "删除失败");
         throw new Error(res.msg);
       }
     } catch (err) {
@@ -298,7 +298,7 @@ function useChat() {
         setChatPage(res.data);
         return res.data;
       } else {
-        message.warning(res.msg);
+        // message.warning(res.msg);
         throw new Error(res.msg);
       }
     } catch (err) {
@@ -316,10 +316,10 @@ function useChat() {
       const res = await saveChat(data);
       if (res.code === 200) {
         if (res.data) setConversationId(res.data);
-        message.success(res.msg || "保存成功");
+        // message.success(res.msg || "保存成功");
         return res.data;
       } else {
-        message.warning(res.msg);
+        // message.warning(res.msg);
         throw new Error(res.msg);
       }
     } catch (err) {
@@ -337,7 +337,7 @@ function useChat() {
       const res = await findCursorChat(data);
       if (res.code === 200) return res.data;
       else {
-        message.warning(res.msg);
+        // message.warning(res.msg);
         throw new Error(res.msg);
       }
     } catch (err) {

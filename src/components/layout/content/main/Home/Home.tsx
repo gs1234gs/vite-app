@@ -421,7 +421,7 @@ const HomePage = () => {
           <div className="top-banner">
             <div className="banner-content">
               <div className="banner-left">
-                <div className="banner-badge">11.11</div>
+                <div className="banner-badge">6.18</div>
                 <div className="banner-text">
                   <span className="banner-title">时尚换新日</span>
                   <span className="banner-desc">整点送明星亲签好礼</span>

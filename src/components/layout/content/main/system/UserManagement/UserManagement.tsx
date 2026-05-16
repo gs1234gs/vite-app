@@ -31,25 +31,36 @@ const pageType: PageType<SysUserType> = {
   }
 }
 
-   const  {findByIdApi,findPageApi,sysUserList,loading,error,saveApi} = useSysUser();
+   const  {findByIdApi,findPageApi,sysUserList,loading,error,saveApi,deleteByIdApi} = useSysUser();
    const { findPageApi: findRolePageApi, sysUserList: roleList } = useSysRole();
    const { findPageApi: findTenantPageApi, tenantList } = useTenant();
    
+     // 获取用户列表 - 组件挂载时执行
      useEffect(() => {
        findPageApi(pageType);
-       // 获取角色列表
+     }, [findPageApi]);
+     
+     // 获取角色列表 - 仅在弹窗打开时执行
+     useEffect(() => {
+       if (!isModalOpen) return; // 弹窗未打开时不执行
+       
        findRolePageApi({
          pageNum: 1,
          pageSize: 100,
          condition: {}
        });
-       // 获取租户列表
+     }, [isModalOpen, findRolePageApi]); // 依赖 isModalOpen，仅在弹窗打开时触发
+     
+     // 获取租户列表 - 仅在弹窗打开时执行
+     useEffect(() => {
+       if (!isModalOpen) return; // 弹窗未打开时不执行
+       
        findTenantPageApi({
          pageNum: 1,
          pageSize: 100,
          condition: {}
        });
-     }, [findPageApi, findRolePageApi, findTenantPageApi]);
+     }, [isModalOpen, findTenantPageApi]); // 依赖 isModalOpen，仅在弹窗打开时触发
      
      // 当角色列表加载完成后，转换为 Select 选项格式
      useEffect(() => {
@@ -79,9 +90,15 @@ const pageType: PageType<SysUserType> = {
     form.resetFields();
     console.log("save")
   };
-  const handleDelete =(id:number)=>{
-console.log("del")
- message.success(`删除成功：${id}`);
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteByIdApi(id);
+      message.success('删除成功');
+      // 刷新列表
+      findPageApi(pageType);
+    } catch (error) {
+      message.error('删除失败');
+    }
   }
   const handleEdit =(edit:any)=>{
     setIsEdit(true);

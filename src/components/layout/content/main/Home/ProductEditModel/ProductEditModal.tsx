@@ -105,7 +105,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({ visible, productId,
       return;
     }
     if ((selectedSku.stock || 0) <= 0) {
-      message.error('库存不足');
+      message.warning('库存不足');
       return;
     }
     try {

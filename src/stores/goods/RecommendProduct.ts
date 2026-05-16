@@ -148,6 +148,9 @@ function useRecommendProduct() {
       try {
         const res = await recommendScroll(pageSize, refresh);
         if (res.code === HttpStatusCode.Ok) {
+    
+          message.success(res.msg);
+        
           setLoading(false);
           return res.data;
         }
@@ -170,6 +173,7 @@ function useRecommendProduct() {
     try {
       const res = await getHotProducts();
       if (res.code === HttpStatusCode.Ok) {
+        message.success(res.msg)
         setLoading(false);
         return res.data;
       }
@@ -190,6 +194,7 @@ function useRecommendProduct() {
     try {
       const res = await getMostNewProducts();
       if (res.code === HttpStatusCode.Ok) {
+        message.success(res.msg)
         setLoading(false);
         return res.data;
       }
@@ -211,6 +216,7 @@ function useRecommendProduct() {
       try {
         const res = await findCursor(params);
         if (res.code === HttpStatusCode.Ok) {
+          message.success(res.msg)
           setLoading(false);
           return res.data;
         }
@@ -235,8 +241,9 @@ function useRecommendProduct() {
       try {
         const res = await likeScroll(offset, pageSize, refresh);
         if (res.code === HttpStatusCode.Ok) {
+          message.success(res.msg)
           setLoading(false);
-          return res.data as ProductCustomerVO[];
+          return res.data;
         }
       } catch (err) {
         setError(err as Error);

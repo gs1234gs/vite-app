@@ -20,17 +20,23 @@ function useSku() {
     setError(null);
     try {
       const res = await apiCall();
+      
+      // ✅ 成功情况 (code === 200)
       if (res.code === HttpStatusCode.Ok) {
         if (showSuccessMsg) {
-          message.success(res.msg);
+          message.success(res.msg || '操作成功');
         }
         return res.data;
-      } else {
-        message.error(res.msg || '操作失败');
-        setError(res.msg || '请求失败');
+      } 
+      // ❌ 失败情况 (code !== 200) - 必须显示错误消息
+      else {
+        const errorMsg = res.msg || '操作失败';
+        message.error(errorMsg);
+        setError(errorMsg);
         return null;
       }
     } catch (err) {
+      // 🌐 网络异常或其他错误
       const errorMsg = err instanceof Error ? err.message : '网络异常，请稍后重试';
       message.error(errorMsg);
       setError(errorMsg);

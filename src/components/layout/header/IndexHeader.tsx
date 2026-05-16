@@ -64,13 +64,19 @@ useEffect(() => {
         break;
       case "logout":
         message.info("退出登录");
-        await logout()
-        navigate("/sign-in");
-
-         cacheSession.removeCache(SYSTEM_MENU_BAR_CONST_KEY)
-        cacheSession.removeCache(SIGN_IN_CONST_TOKEN)
-        cacheSession.removeCache(SIGN_IN_CONST_ID)
-        cacheSession.clearCache()
+        try {
+          await logout();
+        } catch (error) {
+          // 即使API调用失败（如token过期），也要继续执行清理操作
+          console.warn('Logout API failed:', error);
+        } finally {
+          // 无论API是否成功，都要清除本地缓存并跳转
+          cacheSession.removeCache(SYSTEM_MENU_BAR_CONST_KEY);
+          cacheSession.removeCache(SIGN_IN_CONST_TOKEN);
+          cacheSession.removeCache(SIGN_IN_CONST_ID);
+          cacheSession.clearCache();
+          navigate("/sign-in", { replace: true });
+        }
         break;
     }
   };

@@ -62,7 +62,7 @@ const ProductManagement: React.FC = () => {
 const [categoryOptions, setCategoryOptions] = useState<{ label: string; value: string }[]>([]);
 const [categoryLoading, setCategoryLoading] = useState(false);
   const pageSizeRef = useRef(pagination.pageSize);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     pageSizeRef.current = pagination.pageSize;
@@ -271,7 +271,7 @@ const loadCategoryOptions = useCallback(
   const handleDelete = useCallback(async (id: string) => {
     try {
       await deleteByIdApi(id);
-      message.success('删除成功');
+      // message.success('删除成功');
       fetchProductList(pagination.current);
     } catch (error) {
       message.error('删除失败');

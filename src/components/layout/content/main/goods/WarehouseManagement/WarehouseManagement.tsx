@@ -132,7 +132,7 @@ const WarehouseManagement: React.FC = () => {
 
     const id = await saveWarehouseApi(payload);
     if (id !== null) {
-      message.success(editId ? '编辑成功' : '新增成功');
+      // message.success(editId ? '编辑成功' : '新增成功');
       handleCancel();
       loadPage(pagination.current, pagination.pageSize, searchParams);
     }
@@ -141,7 +141,7 @@ const WarehouseManagement: React.FC = () => {
   const handleDelete = async (id: string) => {
     const result = await deleteWarehouseByIdApi(id);
     if (result !== null) {
-      message.success('删除成功');
+      // message.success('删除成功');
       loadPage(pagination.current, pagination.pageSize, searchParams);
     }
   };
@@ -154,7 +154,7 @@ const WarehouseManagement: React.FC = () => {
     const ids = selectedRowKeys.map(String);
     const result = await deleteAllWarehouseByIdApi(ids);
     if (result !== null) {
-      message.success('批量删除成功');
+      // message.success('批量删除成功');
       setSelectedRowKeys([]);
       loadPage(pagination.current, pagination.pageSize, searchParams);
     }

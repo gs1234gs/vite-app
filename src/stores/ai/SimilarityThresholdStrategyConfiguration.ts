@@ -33,11 +33,11 @@ export function useSimilarityThresholdStrategyConfiguration() {
     try {
       const res = await saveSimilarityThresholdStrategyConfiguration(data);
       if (res.code === 200) {
-        message.success("保存成功");
+        // message.success("保存成功");
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {
@@ -61,7 +61,7 @@ export function useSimilarityThresholdStrategyConfiguration() {
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {
@@ -85,7 +85,7 @@ export function useSimilarityThresholdStrategyConfiguration() {
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {
@@ -105,11 +105,11 @@ export function useSimilarityThresholdStrategyConfiguration() {
     try {
       const res = await deleteSimilarityThresholdStrategyConfigurationById(id);
       if (res.code === 200) {
-        message.success("删除成功");
+        // message.success("删除成功");
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {
@@ -129,11 +129,11 @@ export function useSimilarityThresholdStrategyConfiguration() {
     try {
       const res = await enableSimilarityThresholdStrategy(id);
       if (res.code === 200) {
-        message.success("启用成功");
+        // message.success("启用成功");
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {

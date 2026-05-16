@@ -87,13 +87,8 @@ function usePurChaseOrder() {
       setLoading(true);
       setError(null);
       try {
-        const res: ResultT<boolean> = await deletedById(id);
-        if (res.data === true) {
-          message.success(res.msg)
-        } else {
-          handleError(null, res.msg || '删除失败');
-          return null;
-        }
+         await deletedById(id);
+      
       } catch (err) {
         handleError(err, '网络错误，请稍后重试');
         return null;

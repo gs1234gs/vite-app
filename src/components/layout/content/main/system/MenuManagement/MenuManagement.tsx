@@ -92,7 +92,7 @@ const MenuManagement: React.FC = () => {
       const fullMenu = await findByIdApi(id);
 
       if (!fullMenu) {
-        message.error('未获取到菜单详情');
+        // message.error('未获取到菜单详情');
         return;
       }
 

@@ -23,9 +23,7 @@ function useWarehouse() {
         message.success(res.msg || '保存成功');
         setLoading(false);
         return res.data; // 返回仓库 ID（字符串）
-      } else {
-        message.error(res.msg || '保存失败');
-      }
+      } 
     } catch (err) {
       setError(err as Error);
       message.error('保存失败');
@@ -45,9 +43,7 @@ function useWarehouse() {
       if (res.code === HttpStatusCode.Ok) {
         setLoading(false);
         return res.data as WarehouseVO;
-      } else {
-        message.error(res.msg || '查询失败');
-      }
+      } 
     } catch (err) {
       setError(err as Error);
       message.error('查询失败');
@@ -68,9 +64,7 @@ function useWarehouse() {
         message.success(res.msg || '删除成功');
         setLoading(false);
         return res.data; // 通常返回删除数量（如 1）
-      } else {
-        message.error(res.msg || '删除失败');
-      }
+      } 
     } catch (err) {
       setError(err as Error);
       message.error('删除失败');
@@ -91,9 +85,7 @@ function useWarehouse() {
         message.success(res.msg || '批量删除成功');
         setLoading(false);
         return res.data; // 返回删除数量
-      } else {
-        message.error(res.msg || '批量删除失败');
-      }
+      } 
     } catch (err) {
       setError(err as Error);
       message.error('批量删除失败');
@@ -113,8 +105,6 @@ function useWarehouse() {
       if (res.code === HttpStatusCode.Ok) {
         setLoading(false);
         return res.data; // PageResult<WarehouseVO>
-      } else {
-        message.error(res.msg || '查询失败');
       }
     } catch (err) {
       setError(err as Error);

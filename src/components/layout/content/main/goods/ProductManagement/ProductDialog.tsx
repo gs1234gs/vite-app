@@ -48,9 +48,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const { findPageApi: findCategories, findByIdApi } = useCategory();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-const [tags, setTags] = useState<TagVO[]>([]);
-  // 加载分类
+  const [tags, setTags] = useState<TagVO[]>([]);
+1  
+  // 加载分类 - 仅在弹窗打开时执行
   useEffect(() => {
+    if (!visible) return; // 弹窗未打开时不执行
+    
     const fetchCategories = async () => {
       try {
         const response = await findCategories({
@@ -81,24 +84,29 @@ const [tags, setTags] = useState<TagVO[]>([]);
       }
     };
     fetchCategories();
-  }, [findCategories]);
-useEffect(() => {
-  const fetchTags = async () => {
-    try {
-      const res = await useTag().findAllTagByApi({
-        pageNum: 1,
-        pageSize: 1000, // 一次性加载全部（如果不多）
-        condition: {} as TagVO,
-      });
-      if (res?.rows) {
-        setTags(res.rows);
+  }, [visible, findCategories]); // 依赖 visible，仅在弹窗打开时触发
+
+  // 加载标签 - 仅在弹窗打开时执行
+  useEffect(() => {
+    if (!visible) return; // 弹窗未打开时不执行
+    
+    const fetchTags = async () => {
+      try {
+        const res = await useTag().findAllTagByApi({
+          pageNum: 1,
+          pageSize: 1000, // 一次性加载全部（如果不多）
+          condition: {} as TagVO,
+        });
+        if (res?.rows) {
+          setTags(res.rows);
+        }
+      } catch (err) {
+        console.error('获取标签失败', err);
       }
-    } catch (err) {
-      console.error('获取标签失败', err);
-    }
-  };
-  fetchTags();
-}, []);
+    };
+    fetchTags();
+  }, [visible]); // 依赖 visible，仅在弹窗打开时触发
+
   // 回显商品数据
   useEffect(() => {
     if (type === 'create') {
@@ -171,13 +179,14 @@ useEffect(() => {
         tagId: values.tagId || [],
       };
 
-      const result = await saveProductApi(submitData);
+      const result =  await saveProductApi(submitData);
       if (result) {
-        message.success(type === 'edit' ? '更新成功' : '创建成功');
+      //   message.success(type === 'edit' ? '更新成功' : '创建成功');
         onSuccess();
-      } else {
-        message.error('操作失败');
       }
+      //  else {
+      //   message.error('操作失败');
+      // }
     } catch (error: any) {
       console.error('保存失败:', error);
       message.error('请检查输入数据');

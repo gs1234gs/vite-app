@@ -1,5 +1,6 @@
 import { findByRows, save } from '@/api/behavior/browse/Browse';
 import type { UserBrowseSaveVO, UserBrowseVO } from '@/api/behavior/browse/BrowseType';
+import { message } from 'antd';
 import { HttpStatusCode } from 'axios';
 import { useState, useCallback } from 'react';
 
@@ -17,8 +18,10 @@ function useUserBrowse() {
       if (res.code === HttpStatusCode.Ok) {
         // 不再弹出 success 提示
         setLoading(false);
+        message.success(res.msg)
         return res.data;
       }
+      message.error(res.msg)
     } catch (err) {
       console.error('静默保存浏览记录失败:', err);
       // 生产环境不抛出错误，除非需要重试机制

@@ -326,7 +326,7 @@ useEffect(() => {
                   {treeNodes && treeNodes.length > 0 ? (
                     <Tree
                       checkable
-                      checkStrictly={true} // 非严格模式，选中父节点自动选中子节点
+                      checkStrictly={false} // 👈 改为非严格模式，选中父节点自动选中子节点
                       onExpand={onExpand}
                       expandedKeys={expandedKeys}
                       autoExpandParent={autoExpandParent}

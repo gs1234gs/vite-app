@@ -22,6 +22,8 @@ const loadLocalRouters = () => {
   return localRouters;
 }
 
+
+
 // 记录第一个可用菜单项
 export const firstMenu: { current: any | null } = { current: null };
 
@@ -115,7 +117,27 @@ export const mapMenusToPermissions = (userMenus: any[]) => {
     _recurseGetPermission(userMenus);
     return permissions;
   }
-  
+  /**
+ * 深度优先遍历，寻找第一个可访问的有效菜单路径
+ */
+export const findFirstAccessibleMenu = (menus: any[], basePath = ''): string | null => {
+  for (const menu of menus) {
+    // 过滤掉隐藏的菜单、按钮或非菜单项
+    if (menu.hidden || menu.menuType === 'F') continue 
+
+    const fullPath = basePath + menu.path
+
+    // 如果是叶子节点（没有子菜单），就返回它的路径
+    if (!menu.children || menu.children.length === 0) {
+      return fullPath
+    }
+
+    // 如果有子菜单，继续向下递归查找
+    const leafPath = findFirstAccessibleMenu(menu.children, fullPath + '/')
+    if (leafPath) return leafPath
+  }
+  return null
+}
   
   export default mapMenusToRouters;
   

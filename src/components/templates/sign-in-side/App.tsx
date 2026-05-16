@@ -31,10 +31,13 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import Link from '@mui/joy/Link';
 import useProductCarousal from '@/stores/goods/ProductCarousel';
 import type { ProductCarousalVO } from '@/api/goods/carousel/ProductCarouselType';
+import { findCode } from '@/api/SignInUp/SignIn';
+import { message as antdMessage } from 'antd';
 
 interface FormElements extends HTMLFormControlsCollection {
   username: HTMLInputElement;
   password: HTMLInputElement;
+  code: HTMLInputElement;
   persistent: HTMLInputElement;
 }
 interface SignInFormElement extends HTMLFormElement {
@@ -302,16 +305,18 @@ function Carousel({ images }: { images: ProductCarousalVO[] }) {
 
 export default function JoySignInSideTemplate() {
   const [showPassword, setShowPassword] = React.useState(false);
-  const [usernameError, setUsernameError] = React.useState('');
   const [carouselImages, setCarouselImages] = React.useState<ProductCarousalVO[]>([]);
+  const [shownMessageKey, setShownMessageKey] = React.useState<string>(''); // 记录上次显示消息的唯一标识
+  const [countdown, setCountdown] = React.useState(0); // 验证码倒计时
+  const timerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
   const {
     open,
-    message,
+    message: notifyMessage,
     code,
     showMessage,
     closeMessage,
   } = useNotifyMessage();
-  const { signInApi, loading, dataResult } = UseSignIn();
+  const { signInApi, loading, dataResult, resetDataResult } = UseSignIn();
   const { findByType } = useProductCarousal();
 
   // 获取轮播图数据
@@ -330,37 +335,111 @@ export default function JoySignInSideTemplate() {
     fetchCarousel();
   }, [findByType]);
 
+  // 获取验证码
+  const handleGetCode = async () => {
+    const formElements = document.querySelector('form')?.elements as any;
+    const username = formElements?.username?.value?.trim();
+
+    if (!username) {
+      antdMessage.warning('请输入用户名以获取验证码');
+      return;
+    }
+
+    try {
+      const res = await findCode({ username });
+      if (res.data.code === 200) {
+        antdMessage.success(res.data.msg || '验证码已发送');
+        // 开始倒计时
+        setCountdown(60);
+        timerRef.current = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        antdMessage.error(res.data.msg || '获取验证码失败');
+      }
+    } catch (error: any) {
+      antdMessage.error(error.response?.data?.msg || '获取验证码失败，请检查网络连接');
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<SignInFormElement>) => {
     event.preventDefault();
     const formElements = event.currentTarget.elements;
 
     const username = formElements.username.value.trim();
     const password = formElements.password.value;
-    const rememberMe = formElements.persistent.checked;
-
-    if (username.length < 4) {
-      setUsernameError('用户名长度不能少于 4 位');
-      return;
-    }
-    setUsernameError('');
-
+    const code = formElements.code.value.trim();
+    
+    // 不进行前端校验，直接提交给后端处理
+    // 邮箱可以是任意文本，验证码可以为空
     const userInfo: SignInType = {
       username,
       password,
+      code: code ? code : null, // 如果验证码为空，传递null而不是空字符串
     };
 
     await signInApi(userInfo);
   };
 
   useEffect(() => {
-    if (dataResult?.code === 200) {
-      showMessage(dataResult.msg, dataResult.code);
-      cacheSession.setCache(SIGN_IN_CONST_ID, dataResult.data.id);
-      cacheSession.setCache(SIGN_IN_CONST_TOKEN, dataResult.data.token);
-    } else if (dataResult?.code !== undefined) {
-      showMessage(dataResult.msg || '登录失败', dataResult.code);
+    // 只有在非 loading 状态且 dataResult 存在时才处理结果
+    if (dataResult && !loading) {
+      // 生成当前结果的唯一标识（基于 code 和 msg）
+      const currentKey = `${dataResult.code}_${dataResult.msg}`;
+      
+      // 只有当与上次显示的消息不同时才显示
+      if (currentKey !== shownMessageKey) {
+        if (dataResult.code === 200) {
+          showMessage(dataResult.msg, dataResult.code);
+          cacheSession.setCache(SIGN_IN_CONST_ID, dataResult.data.id);
+          cacheSession.setCache(SIGN_IN_CONST_TOKEN, dataResult.data.token);
+        } else if (dataResult.code !== undefined) {
+          showMessage(dataResult.msg || '登录失败', dataResult.code);
+        }
+        // 更新已显示消息的标识
+        setShownMessageKey(currentKey);
+      }
     }
-  }, [dataResult, showMessage]);
+  }, [dataResult, loading, showMessage, shownMessageKey]);
+
+  // 当消息关闭后，重置 dataResult 和 shownMessageKey，允许下次登录
+  useEffect(() => {
+    if (!open && dataResult) {
+      const timer = setTimeout(() => {
+        resetDataResult();
+        setShownMessageKey(''); // 清空标识，允许下次显示
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [open, dataResult, resetDataResult]);
+
+  // 监听清理事件
+  useEffect(() => {
+    const handleClear = () => {
+      // 这里我们不直接调用 resetDataResult，而是让组件自然处理
+      // 因为 dataResult 已经显示过消息了，下次登录时会覆盖它
+    };
+    window.addEventListener('clear-login-result', handleClear);
+    return () => window.removeEventListener('clear-login-result', handleClear);
+  }, []);
+
+  // 清理定时器
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   // 获取背景图片（使用第一张轮播图或默认图片）
   const getBackgroundImage = () => {
@@ -484,19 +563,14 @@ export default function JoySignInSideTemplate() {
 
               <Stack sx={{ gap: 4, mt: 2 }}>
                 <form onSubmit={handleSubmit} method="post">
-                  <FormControl required error={!!usernameError}>
-                    <FormLabel>用户名</FormLabel>
+                  <FormControl required>
+                    <FormLabel>邮箱/用户名</FormLabel>
                     <Input 
                       type="text" 
                       name="username" 
                       autoComplete="username"
-                      error={!!usernameError}
+                      placeholder="请输入邮箱或用户名"
                     />
-                    {usernameError && (
-                      <Typography level="body-xs" color="danger" sx={{ mt: 0.5 }}>
-                        {usernameError}
-                      </Typography>
-                    )}
                   </FormControl>
 
                   <FormControl required>
@@ -517,6 +591,26 @@ export default function JoySignInSideTemplate() {
                         </IconButton>
                       }
                     />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>验证码</FormLabel>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Input 
+                        name="code" 
+                        placeholder="请输入验证码"
+                        autoComplete="one-time-code"
+                        sx={{ flex: 1 }}
+                      />
+                      <Button 
+                        variant="outlined" 
+                        onClick={handleGetCode}
+                        disabled={countdown > 0}
+                        sx={{ minWidth: 120 }}
+                      >
+                        {countdown > 0 ? `${countdown}s` : '获取验证码'}
+                      </Button>
+                    </Box>
                   </FormControl>
 
                   <Stack sx={{ gap: 4, mt: 2 }}>
@@ -559,7 +653,7 @@ export default function JoySignInSideTemplate() {
       </CssVarsProvider>
       <NotifyMessage
         open={open}
-        message={message}
+        message={notifyMessage}
         code={code}
         onClose={closeMessage}
       />

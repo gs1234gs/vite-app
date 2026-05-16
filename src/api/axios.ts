@@ -1,7 +1,9 @@
 
+import { message } from "antd";
 import { SIGN_IN_CONST_TOKEN } from "../const/SignInConst";
 import { cacheSession } from "../utils/cache";
-import axios from "axios";
+import axios, { HttpStatusCode } from "axios";
+import type { ResultT } from "./type/ResultType";
 // const url = import.meta.env.VITE_APP_BASE_API;
 // 创建axios实例 进行基本参数配置
 const sendRequest = axios.create({
@@ -23,7 +25,9 @@ sendRequest.interceptors.request.use(
     const token = cacheSession.getCache(SIGN_IN_CONST_TOKEN);
     //  console.log("token",token);
    if (token) {
-      config.headers['Authorization'] = "Bearer " + token;
+      // 确保 Token 是字符串并进行编码，避免非 ISO-8859-1 字符导致错误
+      const encodedToken = encodeURIComponent(String(token));
+      config.headers['Authorization'] = "Bearer " + encodedToken;
     } else {
       // 3. 如果没有 token，确保删除掉可能存在的旧 Header (防止污染)
       delete config.headers['Authorization'];
@@ -37,8 +41,19 @@ sendRequest.interceptors.request.use(
 
 // 响应拦截器
 sendRequest.interceptors.response.use(
-  (response) => {
-    // console.log(response)
+  (response : any) => {
+    // console.log("eee",response)
+  // const res : ResultT<any>  =  response.data;
+  // const msg = res.msg
+  // if(res.code === 401){
+  //   message.warning(msg)
+  //      return Promise.reject(new Error(msg || 'Error'));
+  // }
+  // if(res.code != HttpStatusCode.Ok){
+  //   message.error(msg)
+  //  return Promise.reject(new Error(msg || 'Error'));
+  // }
+  // message.success(msg)
     return response;
   },
   (error) => {

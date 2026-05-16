@@ -23,15 +23,30 @@ function useSignIn() {
         sysMenuApi();
       }
       return res;
-    } catch (err) {
+    } catch (err: any) {
       setError(err as Error);
+      // 即使失败也要设置 dataResult，确保组件能收到响应数据
+      if (err.response?.data) {
+        setDataResult(err.response.data);
+      } else {
+        // 网络错误或其他异常，设置默认错误信息
+        setDataResult({
+          code: err.response?.status || 500,
+          msg: err.message || '登录失败，请检查网络连接',
+          data: null
+        });
+      }
       throw err; // 可以让调用者catch
     } finally {
       setLoading(false);
     }
   }, []);
 
-  return { signInApi, loading, error, dataResult };
+  const resetDataResult = useCallback(() => {
+    setDataResult(null);
+  }, []);
+
+  return { signInApi, loading, error, dataResult, resetDataResult };
 }
 
 export default useSignIn;

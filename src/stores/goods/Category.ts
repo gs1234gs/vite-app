@@ -24,6 +24,7 @@ function useCategory(){
       const res: ResultT<PageResult<CategoryVO>> = await findPage(data);
       
       if (res.code === 200) {
+        message.success(res.msg)
         return res.data;
       } else {
         handleError(null, res.msg || '加载分类数据失败');
@@ -48,6 +49,7 @@ function useCategory(){
         const res: ResultT<CategoryVO> = await findById(id);
         
         if (res.code === 200) {
+          message.success(res.msg)
           return res.data;
         } else {
           handleError(null, res.msg || '获取分类详情失败');

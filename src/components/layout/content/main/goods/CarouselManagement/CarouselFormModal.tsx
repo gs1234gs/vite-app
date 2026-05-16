@@ -90,7 +90,7 @@ const CarouselFormModal = ({
           form.setFieldValue('image', imageUrl);  // ✅ 设置表单字段
           setImageUrl(imageUrl);  // ✅ 同时更新预览图片
           onSuccess!(imageUrl);
-          message.success('图片上传成功');
+          // message.success('图片上传成功');
         } else {
           throw new Error('上传返回数据为空');
         }

@@ -129,7 +129,7 @@ useEffect(() => {
     const res = await deleteProductCarousalByIdApi(id);
     if (res !== null) {
       setList(prev => prev.filter(item => item.id !== id));
-      message.success('删除成功');
+      // message.success('删除成功');
     }
   };
 
@@ -140,7 +140,7 @@ useEffect(() => {
     if (res !== null) {
       setList(prev => prev.filter(item => !selectedRowKeys.includes(item.id)));
       setSelectedRowKeys([]);
-      message.success(`成功删除 ${selectedRowKeys.length} 条`);
+      // message.success(`成功删除 ${selectedRowKeys.length} 条`);
     }
   };
 
@@ -160,7 +160,7 @@ useEffect(() => {
       }
       setIsModalOpen(false);
       setEditingItem(null);
-      message.success(editingItem ? '更新成功' : '新增成功');
+      // message.success(editingItem ? '更新成功' : '新增成功');
     }
   };
 

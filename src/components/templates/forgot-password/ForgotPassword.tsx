@@ -17,15 +17,17 @@ import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import Link from '@mui/joy/Link';
-import { forgotPasswordReset } from '@/api/SignInUp/SignIn';
+import { forgotPasswordReset, findCode } from '@/api/SignInUp/SignIn';
 import NotifyMessage from '@/utils/NotifyMessage';
 import { useNotifyMessage } from '@/utils/hooks/useNotifyMessage';
 import { useNavigate } from 'react-router-dom';
 import { cacheLocal } from '@/utils/cache';
 import { SIGN_IN_CONST_TOKEN } from '@/const/SignInConst';
+import { message as antdMessage } from 'antd';
 
 interface FormElements extends HTMLFormControlsCollection {
   username: HTMLInputElement;
+  code: HTMLInputElement;
   password: HTMLInputElement;
   confirmPassword: HTMLInputElement;
 }
@@ -58,7 +60,7 @@ function ColorSchemeToggle(props: IconButtonProps) {
 const customTheme = extendTheme({ defaultColorScheme: 'dark' } as any);
 
 // 步骤枚举
-type Step = 'username' | 'reset';
+type Step = 'username' | 'verify' | 'reset';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -66,6 +68,8 @@ export default function ForgotPassword() {
   const [username, setUsername] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(0); // 验证码倒计时
+  const timerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
   
   // 错误状态
   const [usernameError, setUsernameError] = React.useState('');
@@ -84,11 +88,72 @@ export default function ForgotPassword() {
 
   // 验证用户名并进入下一步
   const handleNextStep = () => {
-    if (!username || username.trim().length < 4) {
-      setUsernameError('请输入有效的用户名（至少4位）');
+    if (!username || username.trim().length === 0) {
+      setUsernameError('请输入邮箱');
       return;
     }
+    
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(username.trim())) {
+      setUsernameError('请输入正确的邮箱格式');
+      return;
+    }
+    
     setUsernameError('');
+    setStep('verify');
+  };
+
+  // 获取验证码
+  const handleGetCode = async () => {
+    if (!username || username.trim().length === 0) {
+      setUsernameError('请先输入邮箱');
+      return;
+    }
+    
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(username.trim())) {
+      setUsernameError('请输入正确的邮箱格式');
+      return;
+    }
+
+    try {
+      const res = await findCode({ username: username.trim() });
+      if (res.data.code === 200) {
+        antdMessage.success(res.data.msg || '验证码已发送');
+        // 开始倒计时
+        setCountdown(60);
+        timerRef.current = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        antdMessage.error(res.data.msg || '获取验证码失败');
+      }
+    } catch (error: any) {
+      antdMessage.error(error.response?.data?.msg || '获取验证码失败，请检查网络连接');
+    }
+  };
+
+  // 验证验证码并进入重置密码步骤
+  const handleVerifyCode = () => {
+    const formElements = document.querySelector('form')?.elements as any;
+    const code = formElements?.code?.value?.trim();
+
+    if (!code) {
+      antdMessage.error('请输入验证码');
+      return;
+    }
+
     setStep('reset');
   };
 
@@ -97,8 +162,15 @@ export default function ForgotPassword() {
     event.preventDefault();
     const formElements = event.currentTarget.elements;
 
+    const code = formElements.code.value.trim();
     const password = formElements.password.value;
     const confirmPassword = formElements.confirmPassword.value;
+
+    // 校验验证码
+    if (!code) {
+      antdMessage.error('请输入验证码');
+      return;
+    }
 
     // 校验密码
     if (!password || password.length < 6) {
@@ -119,6 +191,7 @@ export default function ForgotPassword() {
       const res = await forgotPasswordReset({
         username: username.trim(),
         password,
+        code,
       });
 
       if (res.data?.code === 200) {
@@ -126,7 +199,7 @@ export default function ForgotPassword() {
         // 延迟跳转到登录页，让用户看到成功提示
         setTimeout(() => {
           cacheLocal.removeCache(SIGN_IN_CONST_TOKEN)
-          navigate('/sign-in');
+          navigate('/sign-in', { replace: true });
         }, 2000);
       } else {
         showMessage(res.data?.msg || '密码重置失败', res.data?.code || 500);
@@ -141,11 +214,22 @@ export default function ForgotPassword() {
   // 返回上一步
   const handleBack = () => {
     if (step === 'reset') {
-      setStep('username');
+      setStep('verify');
       setPasswordError('');
       setConfirmPasswordError('');
+    } else if (step === 'verify') {
+      setStep('username');
     }
   };
+
+  // 清理定时器
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   // 获取背景图片
   const getBackgroundImage = () => {
@@ -249,12 +333,14 @@ export default function ForgotPassword() {
                     )}
                     <Typography component="h1" level="h3">
                       {step === 'username' && '忘记密码'}
+                      {step === 'verify' && '验证身份'}
                       {step === 'reset' && '重置密码'}
                     </Typography>
                   </Box>
                   <Typography level="body-sm">
-                    {step === 'username' && '请输入您的用户名，然后设置新密码'}
-                    {step === 'reset' && `为用户 "${username}" 设置新密码`}
+                    {step === 'username' && '请输入您的邮箱地址'}
+                    {step === 'verify' && `向 "${username}" 发送验证码`}
+                    {step === 'reset' && `为邮箱 "${username}" 设置新密码`}
                   </Typography>
                 </Stack>
               </Stack>
@@ -263,18 +349,18 @@ export default function ForgotPassword() {
               {step === 'username' && (
                 <Stack sx={{ gap: 4, mt: 2 }}>
                   <FormControl required error={!!usernameError}>
-                    <FormLabel>用户名</FormLabel>
+                    <FormLabel>邮箱</FormLabel>
                     <Input 
-                      type="text" 
+                      type="email"
                       name="username"
                       value={username}
                       onChange={(e) => {
                         setUsername(e.target.value);
                         setUsernameError('');
                       }}
-                      autoComplete="username"
+                      autoComplete="email"
                       error={!!usernameError}
-                      placeholder="请输入用户名"
+                      placeholder="请输入邮箱地址"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           handleNextStep();
@@ -304,9 +390,65 @@ export default function ForgotPassword() {
                 </Stack>
               )}
 
-              {/* 第二步：重置密码 */}
+              {/* 第二步：输入验证码 */}
+              {step === 'verify' && (
+                <Stack sx={{ gap: 4, mt: 2 }}>
+                  <FormControl required>
+                    <FormLabel>验证码</FormLabel>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Input 
+                        name="code" 
+                        placeholder="请输入验证码"
+                        autoComplete="one-time-code"
+                        sx={{ flex: 1 }}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleVerifyCode();
+                          }
+                        }}
+                      />
+                      <Button 
+                        variant="outlined" 
+                        onClick={handleGetCode}
+                        disabled={countdown > 0}
+                        sx={{ minWidth: 120 }}
+                      >
+                        {countdown > 0 ? `${countdown}s` : '获取验证码'}
+                      </Button>
+                    </Box>
+                  </FormControl>
+
+                  <Button 
+                    fullWidth 
+                    onClick={handleVerifyCode}
+                  >
+                    验证并继续
+                  </Button>
+
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Link href="/sign-in" underline="hover">
+                      返回登录
+                    </Link>
+                  </Box>
+                </Stack>
+              )}
+
+              {/* 第三步：重置密码 */}
               {step === 'reset' && (
                 <form onSubmit={handleResetPassword}>
+                  <FormControl required>
+                    <FormLabel>验证码</FormLabel>
+                    <Input 
+                      name="code" 
+                      placeholder="请输入验证码"
+                      autoComplete="one-time-code"
+                      disabled
+                    />
+                    <Typography level="body-xs" color="neutral" sx={{ mt: 0.5 }}>
+                      验证码已验证通过
+                    </Typography>
+                  </FormControl>
+
                   <FormControl required error={!!passwordError}>
                     <FormLabel>新密码</FormLabel>
                     <Input

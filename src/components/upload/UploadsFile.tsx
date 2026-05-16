@@ -18,7 +18,7 @@ const uploadImagesApi = async (formData: FormData) => {
   try {
     const res = await uploadApi(formData);
     if (res.code !== HttpStatusCode.Ok) {
-      message.error('文件上传失败: ' + (res.msg || '未知错误'));
+      // message.error('文件上传失败: ' + (res.msg || '未知错误'));
       return null;
     }
     return res.data; // 假设返回 string[]
@@ -62,10 +62,7 @@ const UploadsApp: React.FC<UploadsAppProps> = ({
       const newUrl = urlList[0];
       const updatedUrls = [...value, newUrl];
       onChange?.(updatedUrls);
-    } else {
-      message.error('上传失败');
-    }
-
+    } 
     return Upload.LIST_IGNORE;
   };
 
