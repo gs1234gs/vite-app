@@ -31,9 +31,7 @@ function useOrderStatistics() {
     try {
       const res = await apiCall();
       if (res.code === HttpStatusCode.Ok) {
-        if (showSuccessMsg) {
-          message.success(res.msg);
-        }
+      
         return res.data;
       } else {
         message.error(res.msg || '操作失败');

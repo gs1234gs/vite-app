@@ -16,6 +16,12 @@ function useSignUp() {
         try {
             const res: any = await signUp(formData);
             setDataResult(res.data);
+            if(res.code === 200){
+                message.success(res.msg)
+            }
+            else{
+                message.error(res.msg)
+            }
             // console.log(res.data);
             // 如果需要，还可以返回数据
             //   cacheSession.setCache(SIGN_IN_CONST_TOKEN,res.data.data)

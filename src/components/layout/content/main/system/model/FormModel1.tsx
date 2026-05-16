@@ -60,26 +60,30 @@ const FormModel1 = ({
     console.log('onCheck - checkedKeysValue:', checkedKeysValue);
     console.log('onCheck - info:', info);
     
-    // 在非严格模式下，checkedKeysValue 可能是普通数组
-    let newCheckedKeys: { checked: React.Key[]; halfChecked: React.Key[] };
+    // 在严格模式下，checkedKeysValue 可能是普通数组或对象
+    let checkedArray: React.Key[];
     
     if (Array.isArray(checkedKeysValue)) {
-      // 如果是数组格式，转换为对象格式
-      newCheckedKeys = {
-        checked: checkedKeysValue,
-        halfChecked: []
-      };
+      // 如果是数组格式，直接使用
+      checkedArray = checkedKeysValue;
     } else {
-      // 已经是对象格式
-      newCheckedKeys = checkedKeysValue as { checked: React.Key[]; halfChecked: React.Key[] };
+      // 如果是对象格式，使用 checked 属性
+      checkedArray = (checkedKeysValue as { checked: React.Key[] }).checked;
     }
     
-    setCheckedKeys(newCheckedKeys);
+    // 更新内部状态以反映勾选情况（用于UI显示）
+    setCheckedKeys({
+        checked: checkedArray,
+        halfChecked: [] 
+    });
+
+    // 转换为数字数组
+    const menuIds = checkedArray.map(key => Number(key));
     
-    // 同时更新表单字段值
-    const checkedArray = newCheckedKeys.checked.map(key => Number(key));
-    console.log('onCheck - 更新表单字段:', checkedArray);
-    form.setFieldValue('menuIdList', checkedArray);
+    console.log('onCheck - 选中的菜单ID（精细控制）:', menuIds);
+    
+    // 更新表单字段值（只保存用户直接勾选的节点）
+    form.setFieldValue('menuIdList', menuIds);
   };
 
   // 使用 useMemo 优化树形数据转换
@@ -181,6 +185,9 @@ useEffect(() => {
           }
 
           if (item.type === "input") {
+            // 判断是否应该禁用：如果配置了 disabledOnEdit 且当前是编辑模式，则禁用
+            const shouldDisable = item.disabledOnEdit ? isEdit : item.disabled;
+            
             return (
               <Form.Item
                 key={item.name}
@@ -195,7 +202,7 @@ useEffect(() => {
                   min={item.min}
                   max={item.max}
                   step={item.step}
-                  disabled={item.disabled}
+                  disabled={shouldDisable}
                 />
               </Form.Item>
             );
@@ -326,12 +333,12 @@ useEffect(() => {
                   {treeNodes && treeNodes.length > 0 ? (
                     <Tree
                       checkable
-                      checkStrictly={true} // 非严格模式，选中父节点自动选中子节点
+                      checkStrictly={true} // ✅ 改为严格模式，每个节点独立勾选，不自动联动
                       onExpand={onExpand}
                       expandedKeys={expandedKeys}
                       autoExpandParent={autoExpandParent}
                       onCheck={onCheck}
-                      checkedKeys={checkedKeys.checked} // 在非严格模式下，直接传递数组
+                      checkedKeys={checkedKeys.checked} // 在严格模式下，直接传递数组
                       treeData={treeNodes}
                       selectable={false}
                     />

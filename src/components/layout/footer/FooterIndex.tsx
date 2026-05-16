@@ -1,6 +1,6 @@
 
 import { Footer } from 'antd/es/layout/layout';
-
+import { Typography } from 'antd'; // 引入 Typography
 const FooterIndex = () => {
   return (
     <Footer style={{
@@ -15,9 +15,15 @@ const FooterIndex = () => {
       color: '#666',
     }}>
       管仕运 ©{new Date().getFullYear()} 创作
-      <a href="/#/system" target="_blank" rel="noopener noreferrer" style={{ marginLeft: '8px', color: '#1890ff', textDecoration: 'none' }}>
+         <Typography.Link 
+         href="/system" 
+     
+        target="_blank" 
+        rel="noopener noreferrer"
+        style={{ marginLeft: '8px' }}
+      >
         关于系统
-      </a>
+      </Typography.Link>
     </Footer>
   );
 };

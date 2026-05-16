@@ -96,6 +96,7 @@ function useProductCarousal() {
       try {
         const res = await findByid(id);
         if (res.code === HttpStatusCode.Ok) {
+          message.success(res.msg)
           return res.data; 
         } else {
           return null;
@@ -117,6 +118,7 @@ function useProductCarousal() {
       try {
         const res = await findByType(type);
         if (res.code === HttpStatusCode.Ok) {
+          message.success(res.msg)
           return res.data; 
         } else {
           return null;

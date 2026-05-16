@@ -65,7 +65,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
       const orderId = await saveApi(orderData);
       if (orderId) {
-        message.success('✅ 购买成功！订单已创建');
+        // message.success('✅ 购买成功！订单已创建');
         onPurchaseSuccess(); // 关闭商品详情弹窗
         onClose(); // 关闭支付弹窗
       }

@@ -17,6 +17,7 @@ import {
   Popconfirm,
   Tooltip,
   Form,
+  Image,
 } from 'antd';
 import {
   SearchOutlined,
@@ -62,7 +63,7 @@ const ProductManagement: React.FC = () => {
 const [categoryOptions, setCategoryOptions] = useState<{ label: string; value: string }[]>([]);
 const [categoryLoading, setCategoryLoading] = useState(false);
   const pageSizeRef = useRef(pagination.pageSize);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     pageSizeRef.current = pagination.pageSize;
@@ -164,10 +165,15 @@ const loadCategoryOptions = useCallback(
       width: 200,
       render: (text, record) => (
         <Space>
-          <img 
+          <Image
             src={record.image || 'https://via.placeholder.com/40'}
             alt="商品图片"
-            style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }}
+            width={40}
+            height={40}
+            style={{ borderRadius: 4, objectFit: 'cover' }}
+            preview={{
+              mask: <EyeOutlined />,
+            }}
           />
           <span>{text}</span>
         </Space>
@@ -271,7 +277,7 @@ const loadCategoryOptions = useCallback(
   const handleDelete = useCallback(async (id: string) => {
     try {
       await deleteByIdApi(id);
-      message.success('删除成功');
+      // message.success('删除成功');
       fetchProductList(pagination.current);
     } catch (error) {
       message.error('删除失败');

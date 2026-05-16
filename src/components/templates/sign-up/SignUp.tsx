@@ -19,6 +19,7 @@ import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons
 import useSignUp from '@/stores/SignInUp/SignUp';
 import type { SignUpType } from '@/types/SignInUpType';
 import { message } from 'antd';
+import { findCode } from '@/api/SignInUp/SignIn';
 
 // 卡片样式保持不变
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -73,19 +74,68 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
 
   const [confirmPasswordError, setConfirmPasswordError] = React.useState(false);
   const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = React.useState('');
+  const [countdown, setCountdown] = React.useState(0); // 验证码倒计时
+  const timerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
   const { signUpApi, loading, dataResult } = useSignUp();
+
+  // 获取验证码
+  const handleGetCode = async () => {
+    const phone = document.getElementById('phone') as HTMLInputElement;
+    
+    if (!phone.value) {
+      setPhoneError(true);
+      setPhoneErrorMessage('请先输入邮箱');
+      return;
+    }
+
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(phone.value)) {
+      setPhoneError(true);
+      setPhoneErrorMessage('请输入正确的邮箱格式');
+      return;
+    }
+
+    try {
+      const res = await findCode({ username: phone.value });
+      if (res.data.code === 200) {
+        message.success(res.data.msg || '验证码已发送');
+        // 开始倒计时
+        setCountdown(60);
+        timerRef.current = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        message.error(res.data.msg || '获取验证码失败');
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.msg || '获取验证码失败，请检查网络连接');
+    }
+  };
+
   const validateInputs = () => {
     const phone = document.getElementById('phone') as HTMLInputElement;
     const password = document.getElementById('password') as HTMLInputElement;
     const confirmPassword = document.getElementById('confirmPassword') as HTMLInputElement;
     const name = document.getElementById('name') as HTMLInputElement;
+    const code = document.getElementById('code') as HTMLInputElement;
 
     let isValid = true;
-    const phoneRegex = /^(\+?\d{1,3}[- ]?)?\d{10,13}$/;
+    // 邮箱格式验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!phone.value || !phoneRegex.test(phone.value)) {
+    if (!phone.value || !emailRegex.test(phone.value)) {
       setPhoneError(true);
-      setPhoneErrorMessage('请输入有效的手机号（支持国内或国际格式）');
+      setPhoneErrorMessage('请输入正确的邮箱格式');
       isValid = false;
     } else {
       setPhoneError(false);
@@ -119,6 +169,12 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
       setNameErrorMessage('');
     }
 
+    // 验证码非空校验
+    if (!code.value || code.value.trim().length === 0) {
+      message.error('请输入验证码');
+      isValid = false;
+    }
+
     return isValid;
   };
 
@@ -127,31 +183,30 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     if (!validateInputs()) return;
 
     const formData = new FormData(event.currentTarget);
-    // console.log({
-    //   name: formData.get('name'),
-    //   phone: formData.get('phone'),
-    //   password: formData.get('password'),
-    // });
     // 获取表单数据
     const data: SignUpType = {
       nickName: formData.get('name') as string,
       username: formData.get('phone') as string,
       password: formData.get('password') as string,
+      code: formData.get('code') as string,
     };
     try {
       const res = await signUpApi(data);
-      if(res.code === 200 ){
-        message.success(res.msg)
-      }
-      else{
-        message.error(res.msg)
-      }
       console.log('注册成功返回：', res);
       // 可以在这里跳转页面或者显示提示
     } catch (err) {
       console.error('注册失败：', err);
     }
   };
+
+  // 清理定时器
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <AppTheme {...props}>
@@ -165,7 +220,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             variant="h4"
             sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
           >
-            手机号注册
+            邮箱注册
           </Typography>
           <Box
             component="form"
@@ -188,19 +243,42 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel htmlFor="phone">手机号</FormLabel>
+              <FormLabel htmlFor="phone">邮箱</FormLabel>
               <TextField
                 required
                 fullWidth
                 id="phone"
-                placeholder="请输入手机号"
+                placeholder="请输入邮箱地址"
                 name="phone"
-                autoComplete="tel"
+                autoComplete="email"
                 variant="outlined"
                 error={phoneError}
                 helperText={phoneErrorMessage}
                 color={phoneError ? 'error' : 'primary'}
               />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel htmlFor="code">验证码</FormLabel>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  required
+                  id="code"
+                  name="code"
+                  placeholder="请输入验证码"
+                  autoComplete="one-time-code"
+                  variant="outlined"
+                  sx={{ flex: 1 }}
+                />
+                <Button 
+                  variant="outlined" 
+                  onClick={handleGetCode}
+                  disabled={countdown > 0}
+                  sx={{ minWidth: 120 }}
+                >
+                  {countdown > 0 ? `${countdown}s` : '获取验证码'}
+                </Button>
+              </Box>
             </FormControl>
 
             <FormControl>

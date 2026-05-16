@@ -36,6 +36,7 @@ const MenuManagement: React.FC = () => {
   const resolvedFormFields: FormField[] = useMemo(() => {
     const fields = [...menuFormFields];
 
+    // ✅ 只要有 editingRecord（无论是新增子菜单还是编辑），都显示上级菜单字段
     if (editingRecord) {
       fields.unshift({
         label: '上级菜单',
@@ -43,6 +44,7 @@ const MenuManagement: React.FC = () => {
         type: 'input',
         disabled: true,
         required: false,
+        placeholder: '请输入上级菜单', // 添加默认占位符
       });
     }
 
@@ -50,16 +52,39 @@ const MenuManagement: React.FC = () => {
   }, [editingRecord]);
 
   const getInitialValues = () => {
-    if (!editingRecord) {
-      return { parentNameDisplay: '顶级菜单' };
+    // 新增菜单（顶级或子级）
+    if (!editingRecord || !(editingRecord as any).id) {
+      // 如果有 parentId，说明是新增子菜单，需要显示父级菜单名称
+      const parentId = (editingRecord as any)?.parentId;
+      let parentName = '顶级菜单';
+      
+      if (parentId !== undefined && parentId !== null) {
+        // ✅ 使用 Number() 确保类型一致进行比较
+        const parent = allSysMenu?.find((m: any) => Number(m.id) === Number(parentId));
+        if (parent) {
+          parentName = parent.name || '未知父级';
+          console.log('找到父级菜单:', parentName, 'parentId:', parentId);
+        } else {
+          console.warn('未找到父级菜单，parentId:', parentId, 'allSysMenu:', allSysMenu);
+        }
+      }
+      
+      console.log('getInitialValues - 新增模式返回值:', { parentNameDisplay: parentName });
+      return { parentNameDisplay: parentName };
     }
 
+    // 编辑菜单
     let parentName = '顶级菜单';
     if ((editingRecord as any).parentId) {
-      const parent = allSysMenu?.find((m: any) => m.id === (editingRecord as any).parentId);
-      parentName = parent?.name || '未知父级';
+      const parentId = (editingRecord as any).parentId;
+      // ✅ 使用 Number() 确保类型一致进行比较
+      const parent = allSysMenu?.find((m: any) => Number(m.id) === Number(parentId));
+      if (parent) {
+        parentName = parent.name || '未知父级';
+      }
     }
 
+    console.log('getInitialValues - 编辑模式返回值:', { ...editingRecord, parentNameDisplay: parentName });
     return {
       ...editingRecord,
       parentNameDisplay: parentName,
@@ -77,11 +102,11 @@ const MenuManagement: React.FC = () => {
   const handleAddChild = (record?: TreeTableData) => {
     if (!record) return;
     setModalTitle('新增子菜单');
+    // ✅ 修复：只保存父级菜单的 id，不包含 name 等其他字段
+    // 这样 getInitialValues 在合并时不会把父级的 name 覆盖到表单的 name 字段
     setEditingRecord({
-      id: record.id,
-      name: record.name,
-      key: record.key,
-    } as TreeTableData);
+      parentId: record.id,  // ✅ 只保存 parentId
+    } as any);
     setModalVisible(true);
   };
 
@@ -92,7 +117,7 @@ const MenuManagement: React.FC = () => {
       const fullMenu = await findByIdApi(id);
 
       if (!fullMenu) {
-        message.error('未获取到菜单详情');
+        // message.error('未获取到菜单详情');
         return;
       }
 
@@ -121,12 +146,17 @@ const MenuManagement: React.FC = () => {
 
     try {
       if (modalTitle === '编辑菜单') {
+        // 编辑模式：使用 editingRecord 的 id
         const id = (editingRecord as any)!.id;
         await saveApi({ id, ...submitValues });
-      } else if (editingRecord) {
-        const parentId = (editingRecord as any).id;
+      } else if (editingRecord && (editingRecord as any).parentId !== undefined) {
+        // 新增子菜单模式：使用 editingRecord 中的 parentId
+        const parentId = (editingRecord as any).parentId;
+        console.log('新增子菜单 - parentId:', parentId, 'submitValues:', submitValues);
         await saveApi({ ...submitValues, parentId });
       } else {
+        // 新增顶级菜单模式：不传 parentId 或传 null
+        console.log('新增顶级菜单 - submitValues:', submitValues);
         await saveApi(submitValues);
       }
 

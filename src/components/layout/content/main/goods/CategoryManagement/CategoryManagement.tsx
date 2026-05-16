@@ -128,7 +128,7 @@ const CategoryManagement: React.FC = () => {
     try {
       if (!deleteByIdApi) throw new Error('删除接口未配置');
       await deleteByIdApi(id);
-      message.success('删除成功');
+      // message.success('删除成功');
       loadData();
     } catch (e: any) {
       message.error(`删除失败: ${e?.message ?? ''}`);
@@ -138,7 +138,7 @@ const CategoryManagement: React.FC = () => {
   const handleSave = async (payload: CategorySaveVO) => {
     try {
       await saveApi(payload);
-      message.success(`分类${payload.id ? '更新' : '添加'}成功`);
+      // message.success(`分类${payload.id ? '更新' : '添加'}成功`);
       setDialogOpen(false);
       loadData();
     } catch (e: any) {

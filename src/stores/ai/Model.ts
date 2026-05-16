@@ -28,11 +28,11 @@ export function useBigModel() {
     try {
       const res = await saveBigModel(data);
       if (res.code === 200) {
-        message.success("保存成功");
+        // message.success("保存成功");
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {
@@ -52,11 +52,11 @@ export function useBigModel() {
     try {
       const res = await deleteBigModelById(id);
       if (res.code === 200) {
-        message.success("删除成功");
+        // message.success("删除成功");
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {
@@ -80,7 +80,7 @@ export function useBigModel() {
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {
@@ -104,7 +104,7 @@ export function useBigModel() {
         return res.data;
       } else {
         const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
-        message.warning(msg);
+        // message.warning(msg);
         throw new Error(msg);
       }
     } catch (err) {

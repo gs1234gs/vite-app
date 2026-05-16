@@ -41,7 +41,7 @@ function useUserCollect(): UseUserCollectReturn {
         return res.data;
       } else {
         const errMsg = res.msg || errorMsg;
-        message.warning(errMsg);
+        // message.warning(errMsg);
         setError(new Error(errMsg));
         return null;
       }

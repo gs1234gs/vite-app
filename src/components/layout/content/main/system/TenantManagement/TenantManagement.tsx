@@ -39,7 +39,7 @@ const TenantManagement: React.FC = () => {
 
   const handleDelete = async (id: number) => {
    await deleteByIdApi(id).then(() => {
-      message.success('删除成功');
+      // message.success('删除成功');
       // 刷新列表
       findPageApi(pageType);
     }).catch((err) => {

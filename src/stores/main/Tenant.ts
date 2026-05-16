@@ -16,11 +16,12 @@ function useTenant() {
     try {
       const res = (await findPage(data)).data;
       if (res.code !== 200) {
-        const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.message);
+        const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.msg);
         message.warning(msg);
       }
       if (res.code === 200) {
         setLoading(false);
+        message.success(res.msg)
         setTenantList(res.data);
       }
       return res;
@@ -53,9 +54,7 @@ function useTenant() {
       if (res.code === 200) {
         setLoading(false);
         message.success(res.msg || '删除成功');
-      } else {
-        message.error(res.msg || '删除失败');
-      }
+      } 
       return res.data;
     } catch (err) {
       setError(err as Error);
@@ -71,8 +70,6 @@ function useTenant() {
       if (res.code === 200) {
         setLoading(false);
         message.success(res.msg || '保存成功');
-      } else {
-        message.error(res.msg || '保存失败');
       }
       return res.data;
     } catch (err) {

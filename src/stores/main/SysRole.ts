@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { HttpErrorHelper } from '@/utils/http/HttpErrorHelper';
 import { message } from 'antd';
 import type { PageType } from '@/api/type/PageType';
-import { findById, findPage,save } from '@/api/main/SysRole';
+import { deleteById, findById, findPage,save } from '@/api/main/SysRole';
 import type { SysRoleType } from '@/api/main/type/SysRoleType';
 function useSysRole(){
       const [loading, setLoading] = useState(false);
@@ -13,14 +13,16 @@ function useSysRole(){
       setError(null);
       try {
         const res = (await findPage(data)).data;
-        // console.log(res);
-        if(res.code !== 200){
+        console.log(res);
+        //  message.success("3333")
+        // if(res.code !== 200){
           //  navigate('/sign-in');
-           const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.message);
-            message.warning(msg);
+          //  const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.message);
+            // message.warning(msg);
             // message.error(msg)
-        }
+        // }
         if(res.code === 200){
+           message.success(res.msg)
           setLoading(false);
           setSysUserList(res.data)
         }
@@ -48,14 +50,14 @@ function useSysRole(){
     const deleteByIdApi = useCallback(async (id: number) => { 
       setLoading(true);
       setError(null);
-      // try {
-      //   const res = (await deleteById(id)).data.data;
-      //   setFindByIdMenu(res);
-      //   return res;
-      // } catch (err) {
-      //   setError(err as Error);
-      //   throw err; 
-      // }
+      try {
+        const res = (await deleteById(id)).data.data;
+        // setFindByIdMenu(res);
+        return res;
+      } catch (err) {
+        setError(err as Error);
+        throw err; 
+      }
     },[])
     const updateByIdApi = useCallback(async (id: number,data:any) => { 
       setLoading(true);
@@ -77,9 +79,7 @@ function useSysRole(){
           setLoading(false);
           message.success(res.msg)
         }
-        if(!(res.code === 200)){
-          message.error(res.msg)
-        }
+      
         return res.data;
       } catch (err) {
         setError(err as Error);

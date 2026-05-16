@@ -34,16 +34,19 @@ const RoleManagement: React.FC = () => {
   }
 
   const { findAllApi, allSysMenu, findAllByRoleIdApi } = useSysMenu();
-  const { findRoleByIdApi, findPageApi, sysUserList, saveApi } = useSysRole();
+  const { findRoleByIdApi, findPageApi, sysUserList, saveApi , deleteByIdApi } = useSysRole();
 
+  // 获取角色列表 - 组件挂载时执行
   useEffect(() => {
     findPageApi(pageType);
   }, [findPageApi]);
 
-  // 初始化时加载所有菜单
+  // 获取菜单列表 - 仅在弹窗打开时执行
   useEffect(() => {
+    if (!isModalOpen) return; // 弹窗未打开时不执行
+    
     findAllApi();
-  }, [findAllApi]);
+  }, [isModalOpen, findAllApi]); // 依赖 isModalOpen，仅在弹窗打开时触发
 
   const handleSave = () => {
     setIsEdit(false);
@@ -55,9 +58,10 @@ const RoleManagement: React.FC = () => {
     setMenuIds([]);
   };
 
-  const handleDelete = (id: number) => {
-    // console.log("del")
-    message.success(`删除成功：${id}`);
+  const handleDelete = async (id: number) => {
+    const res = await deleteByIdApi(id)
+     findPageApi(pageType);
+    message.success(`删除成功：${res.msg}`);
   }
 
   // 使用 useCallback 优化，避免不必要的重渲染

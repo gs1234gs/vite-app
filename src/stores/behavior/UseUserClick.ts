@@ -14,7 +14,7 @@ function useUserClick() {
     try {
       const res = await save(data);
       if (res.code === HttpStatusCode.Ok) {
-        message.success(res.msg || '点击记录保存成功');
+        // message.success(res.msg || '点击记录保存成功');
         setLoading(false);
         return res.data; // string (id)
       }
@@ -34,7 +34,7 @@ function useUserClick() {
       if (res.code === HttpStatusCode.Ok) {
         message.success(res.msg || '查询成功');
         setLoading(false);
-        return res.data as UserClickVO[];
+        return res.data;
       }
     } catch (err) {
       console.error('查询点击记录失败:', err);

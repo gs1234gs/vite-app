@@ -10,7 +10,7 @@ export const UserList = [
             required: true,
             message: "请输入用户名"
         },
-        disabled: true // 编辑时禁用用户名修改
+        disabledOnEdit: true // 仅在编辑时禁用用户名修改
     },
     {
         label: "头像",

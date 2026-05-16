@@ -3,10 +3,7 @@ import LazyLoad from "@/routes/LazyLoad";
 // import reactiveRouter from "./ReactiveRouter";
 import MainLayoutWrapper from "@/routes/MainLayoutWrapper";
 import DynamicRoutes from "@/routes/DynamicRoutes";
-import React from "react";
 // import SystemIntro from "../components/SystemIntro/SystemIntro.tsx";
-const System = React.lazy(() => import("@/components/SystemIntro/SystemIntro"));
-const SearchResultsPage = React.lazy(() => import("@/components/layout/content/main/Home/SearchPage/SearchResultsPage"));
 
 const router = createBrowserRouter(
   [
@@ -40,12 +37,12 @@ const router = createBrowserRouter(
     },
     {
       path: '/system',
-      element: <System />
+      element: <LazyLoad loader={() => import("@/components/SystemIntro/SystemIntro")} />
     }
     ,
     {
       path: "/search",
-      element: <SearchResultsPage />
+      element: <LazyLoad loader={() => import("@/components/layout/content/main/Home/SearchPage/SearchResultsPage")} />
     }
 
   ]

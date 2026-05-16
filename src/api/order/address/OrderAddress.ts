@@ -7,17 +7,17 @@ import {
 } from "@/api/type/ConstRequestMethods";
 import type { PageType } from "@/api/type/PageType";
 import type { PageResult, ResultT } from "@/api/type/ResultType";
-import type { OrderAddressSaveVO, OrderAddressVO } from "./OrderAddressType"; // 确保路径正确
+import type { OrderAddressSaveVO, OrderAddressVO } from "./OrderAddressType";
 
 const ADDRESS_PREFIX = `${ORDER_API_PREFIX}/address`;
 
 /**
  * 后台分页查询地址列表
  */
-const findPage = (
+export const findPageApi = (
   data: PageType<OrderAddressVO>
-): Promise<ResultT<PageResult<OrderAddressVO>>> => {
-  return sendRequest<ResultT<PageResult<OrderAddressVO>>>({
+): Promise<ResultT<PageResult<OrderAddressVO[]>>> => {
+  return sendRequest<ResultT<PageResult<OrderAddressVO[]>>>({
     url: `${ADDRESS_PREFIX}/findPage`,
     method: POST_METHOD,
     data: data,
@@ -31,8 +31,8 @@ const findPage = (
 /**
  * 添加或修改地址
  */
-const save = (data: OrderAddressSaveVO): Promise<ResultT<string>> => {
-  return sendRequest<ResultT<string>>({
+export const saveApi = (data: OrderAddressSaveVO): Promise<ResultT<number>> => {
+  return sendRequest<ResultT<number>>({
     url: `${ADDRESS_PREFIX}/save`,
     method: POST_METHOD,
     data: data,
@@ -46,7 +46,7 @@ const save = (data: OrderAddressSaveVO): Promise<ResultT<string>> => {
 /**
  * 根据 ID 删除地址
  */
-const deleteById = (id: string): Promise<ResultT<void>> => {
+export const deleteByIdApi = (id: number): Promise<ResultT<void>> => {
   return sendRequest<ResultT<void>>({
     url: `${ADDRESS_PREFIX}/deleteById/${id}`,
     method: DELETE_METHOD,
@@ -57,26 +57,10 @@ const deleteById = (id: string): Promise<ResultT<void>> => {
     });
 };
 
-// 注意：后端未实现 /deleteAllById，如需使用请先在后端添加该接口
-// /**
-//  * 批量删除地址（后端暂未实现）
-//  */
-// const deleteAllById = (ids: string[]): Promise<ResultT<void>> => {
-//   return sendRequest<ResultT<void>>({
-//     url: `${ADDRESS_PREFIX}/deleteAllById`,
-//     method: DELETE_METHOD,
-//     data: ids,
-//   })
-//     .then((res) => res.data)
-//     .catch((err) => {
-//       throw err;
-//     });
-// };
-
 /**
  * 根据地址 ID 查询单个地址
  */
-const findById = (id: string): Promise<ResultT<OrderAddressVO>> => {
+export const findByIdApi = (id: number): Promise<ResultT<OrderAddressVO>> => {
   return sendRequest<ResultT<OrderAddressVO>>({
     url: `${ADDRESS_PREFIX}/findById/${id}`,
     method: GET_METHOD,
@@ -90,7 +74,7 @@ const findById = (id: string): Promise<ResultT<OrderAddressVO>> => {
 /**
  * 根据订单 ID 查询对应地址
  */
-const findByOrderId = (orderId: string): Promise<ResultT<OrderAddressVO>> => {
+export const findByOrderIdApi = (orderId: number): Promise<ResultT<OrderAddressVO>> => {
   return sendRequest<ResultT<OrderAddressVO>>({
     url: `${ADDRESS_PREFIX}/findByOrderId/${orderId}`,
     method: GET_METHOD,
@@ -104,9 +88,9 @@ const findByOrderId = (orderId: string): Promise<ResultT<OrderAddressVO>> => {
 /**
  * 根据用户 ID 查询该用户的所有地址
  */
-const findByUserId = (userId: string): Promise<ResultT<OrderAddressVO[]>> => {
+export const findByUserIdApi = (userId: number): Promise<ResultT<OrderAddressVO[]>> => {
   return sendRequest<ResultT<OrderAddressVO[]>>({
-    url: `${ADDRESS_PREFIX}/findByUserId/${userId}`, // ✅ 修正：原错误写成 /findByOrderId
+    url: `${ADDRESS_PREFIX}/findByUserId/${userId}`,
     method: GET_METHOD,
   })
     .then((res) => res.data)
@@ -115,11 +99,10 @@ const findByUserId = (userId: string): Promise<ResultT<OrderAddressVO[]>> => {
     });
 };
 
-// 如果业务需要批量根据订单ID查地址，可补充以下方法（后端已支持）
 /**
  * 批量根据订单 IDs 查询地址列表
  */
-const findByOrderIds = (orderIds: string[]): Promise<ResultT<OrderAddressVO[]>> => {
+export const findByOrderIdsApi = (orderIds: number[]): Promise<ResultT<OrderAddressVO[]>> => {
   return sendRequest<ResultT<OrderAddressVO[]>>({
     url: `${ADDRESS_PREFIX}/findByOrderIds`,
     method: POST_METHOD,
@@ -129,16 +112,4 @@ const findByOrderIds = (orderIds: string[]): Promise<ResultT<OrderAddressVO[]>> 
     .catch((err) => {
       throw err;
     });
-};
-
-// 导出所有方法
-export {
-  findById,
-  findPage,
-  save,
-  deleteById,
-  // deleteAllById, // 暂不导出，因后端未实现
-  findByOrderId,
-  findByUserId,
-  findByOrderIds, // 新增导出
 };

@@ -20,36 +20,59 @@ const UserManagement: React.FC = () => {
   const [query, setQuery] = useState({ username: '', nickName: '' });
   const [roleOptions, setRoleOptions] = useState<Array<{ label: string; value: number }>>([]);
   const [tenantOptions, setTenantOptions] = useState<Array<{ label: string; value: string }>>([]);
+  
+  // 使用 useState 管理分页状态
+  const [pagination, setPagination] = useState({ pageNum: 1, pageSize: 10 });
 
+// pageType 动态引用 pagination 状态
 const pageType: PageType<SysUserType> = {
-  pageNum: 1,
-  pageSize: 10,
+  pageNum: pagination.pageNum,
+  pageSize: pagination.pageSize,
   condition: {
-    username: '',
-    nickName: '',
+    username: query.username,
+    nickName: query.nickName,
     status: 0,
   }
 }
 
-   const  {findByIdApi,findPageApi,sysUserList,loading,error,saveApi} = useSysUser();
+   const  {findByIdApi,findPageApi,sysUserList,loading,error,saveApi,deleteByIdApi} = useSysUser();
    const { findPageApi: findRolePageApi, sysUserList: roleList } = useSysRole();
    const { findPageApi: findTenantPageApi, tenantList } = useTenant();
    
+     // 获取用户列表 - 组件挂载时执行
      useEffect(() => {
-       findPageApi(pageType);
-       // 获取角色列表
+       findPageApi({
+         pageNum: 1,
+         pageSize: 10,
+         condition: {
+           username: '',
+           nickName: '',
+           status: 0,
+         }
+       });
+     }, [findPageApi]);
+     
+     // 获取角色列表 - 仅在弹窗打开时执行
+     useEffect(() => {
+       if (!isModalOpen) return; // 弹窗未打开时不执行
+       
        findRolePageApi({
          pageNum: 1,
          pageSize: 100,
          condition: {}
        });
-       // 获取租户列表
+     }, [isModalOpen, findRolePageApi]); // 依赖 isModalOpen，仅在弹窗打开时触发
+     
+     // 获取租户列表 - 仅在弹窗打开时执行
+     useEffect(() => {
+       if (!isModalOpen) return; // 弹窗未打开时不执行
+       
        findTenantPageApi({
          pageNum: 1,
          pageSize: 100,
          condition: {}
        });
-     }, [findPageApi, findRolePageApi, findTenantPageApi]);
+     }, [isModalOpen, findTenantPageApi]); // 依赖 isModalOpen，仅在弹窗打开时触发
      
      // 当角色列表加载完成后，转换为 Select 选项格式
      useEffect(() => {
@@ -79,9 +102,15 @@ const pageType: PageType<SysUserType> = {
     form.resetFields();
     console.log("save")
   };
-  const handleDelete =(id:number)=>{
-console.log("del")
- message.success(`删除成功：${id}`);
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteByIdApi(id);
+      message.success('删除成功');
+      // 刷新列表
+      findPageApi(pageType);
+    } catch (error) {
+      message.error('删除失败');
+    }
   }
   const handleEdit =(edit:any)=>{
     setIsEdit(true);
@@ -120,13 +149,16 @@ const handleFind = ({
   pageSize: number;
   query?: any;
 }) => {
+  // 更新分页状态
+  setPagination({ pageNum, pageSize });
+  
   const newPage = {
-    ...pageType,
     pageNum,
     pageSize,
     condition: {
-      ...pageType.condition,
-      ...searchQuery, // 把查询条件合并到 condition
+      username: searchQuery?.username ?? query.username,
+      nickName: searchQuery?.nickName ?? query.nickName,
+      status: 0,
     },
   };
   findPageApi(newPage);
@@ -180,8 +212,8 @@ const handleFind = ({
   columns={columns}
   dataSource={dataSource}
   total={sysUserList?.total ?? 0}
-  pageNum={pageType.pageNum}
-  pageSize={pageType.pageSize}
+  pageNum={pagination.pageNum}
+  pageSize={pagination.pageSize}
   handleFind={handleFind}
   handleSave={handleSave}
   handleDelete={handleDelete}
@@ -211,13 +243,15 @@ const handleFind = ({
             type="primary"
             icon={<SearchOutlined />}
             onClick={() => {
+              // 查询时重置到第一页，但保持当前每页大小
+              setPagination({ pageNum: 1, pageSize: pagination.pageSize });
               const newPage = {
-                ...pageType,
                 pageNum: 1,
-                pageSize: pageType.pageSize,
+                pageSize: pagination.pageSize,
                 condition: {
-                  ...pageType.condition,
-                  ...query,
+                  username: query.username,
+                  nickName: query.nickName,
+                  status: 0,
                 },
               };
               findPageApi(newPage);
@@ -229,10 +263,11 @@ const handleFind = ({
             icon={<ReloadOutlined />}
             onClick={() => {
               setQuery({ username: '', nickName: '' });
+              // 重置时回到初始状态（第一页，10条/页）
+              setPagination({ pageNum: 1, pageSize: 10 });
               const newPage = {
-                ...pageType,
                 pageNum: 1,
-                pageSize: pageType.pageSize,
+                pageSize: 10,
                 condition: {
                   username: '',
                   nickName: '',
@@ -277,4 +312,4 @@ const handleFind = ({
 
 };
 
-export default UserManagement;
+export default UserManagement

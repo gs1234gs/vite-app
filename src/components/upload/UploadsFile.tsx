@@ -1,7 +1,7 @@
 // src/components/upload/UploadsFile.tsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
-import { Upload, message } from 'antd';
+import { Upload, message, Image } from 'antd';
 import type { UploadFile, UploadProps } from 'antd';
 import { uploadApi } from '@/api/upload/Upload';
 import { HttpStatusCode } from 'axios';
@@ -18,7 +18,7 @@ const uploadImagesApi = async (formData: FormData) => {
   try {
     const res = await uploadApi(formData);
     if (res.code !== HttpStatusCode.Ok) {
-      message.error('文件上传失败: ' + (res.msg || '未知错误'));
+      // message.error('文件上传失败: ' + (res.msg || '未知错误'));
       return null;
     }
     return res.data; // 假设返回 string[]
@@ -47,6 +47,10 @@ const UploadsApp: React.FC<UploadsAppProps> = ({
     }));
   }, [value]);
 
+  // 图片预览状态
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+
   const handleBeforeUpload: UploadProps['beforeUpload'] = async (file) => {
     if (value.length >= maxCount) {
       message.warning(`最多只能上传 ${maxCount} 个文件`);
@@ -62,10 +66,7 @@ const UploadsApp: React.FC<UploadsAppProps> = ({
       const newUrl = urlList[0];
       const updatedUrls = [...value, newUrl];
       onChange?.(updatedUrls);
-    } else {
-      message.error('上传失败');
-    }
-
+    } 
     return Upload.LIST_IGNORE;
   };
 
@@ -77,6 +78,15 @@ const UploadsApp: React.FC<UploadsAppProps> = ({
     onChange?.(updatedUrls);
   };
 
+  // 处理图片预览
+  const handlePreview = async (file: UploadFile) => {
+    if (!file.url && !file.preview) {
+      return;
+    }
+    setPreviewImage(file.url || (file.preview as string));
+    setPreviewVisible(true);
+  };
+
   const uploadButton = (
     <div>
       <PlusOutlined />
@@ -85,16 +95,29 @@ const UploadsApp: React.FC<UploadsAppProps> = ({
   );
 
   return (
-    <Upload
-      listType="picture-card"
-      fileList={fileList}
-      beforeUpload={handleBeforeUpload}
-      onRemove={handleRemove}
-      accept={accept}
-      disabled={disabled}
-    >
-      {fileList.length < maxCount && uploadButton}
-    </Upload>
+    <>
+      <Upload
+        listType="picture-card"
+        fileList={fileList}
+        beforeUpload={handleBeforeUpload}
+        onRemove={handleRemove}
+        onPreview={handlePreview}
+        accept={accept}
+        disabled={disabled}
+      >
+        {fileList.length < maxCount && uploadButton}
+      </Upload>
+      
+      {/* 图片预览 */}
+      <Image
+        style={{ display: 'none' }}
+        preview={{
+          visible: previewVisible,
+          src: previewImage,
+          onVisibleChange: (visible) => setPreviewVisible(visible),
+        }}
+      />
+    </>
   );
 };
 

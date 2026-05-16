@@ -91,7 +91,7 @@ const MyCollect: React.FC = () => {
   const handleDelete = async (id: string, productName: string) => {
     const success = await deleteCollectById(id);
     if (success) {
-      message.success(`已取消收藏：${productName}`);
+      // message.success(`已取消收藏：${productName}`);
       if (collectList.length === 1 && pageNum > 1) {
         loadCollects(pageNum - 1, pageSize);
       } else {

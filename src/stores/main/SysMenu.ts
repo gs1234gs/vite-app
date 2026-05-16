@@ -6,6 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { HttpErrorHelper } from '@/utils/http/HttpErrorHelper';
 import { message } from 'antd';
 import type { SysMenuType } from '@/api/main/type/SysMenuType';
+import { findFirstAccessibleMenu } from '@/utils/sider/map-menus';
+
+
 function useSysMenu(){
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState<Error | null>(null);
@@ -31,8 +34,13 @@ function useSysMenu(){
       const res = (await menuTree()).data.data;
       setDataSysMenu(res);
       cacheSession.setCache(SYSTEM_MENU_BAR_CONST_KEY, res);
-      //  message.success("登陆成功")
-      navigate('/main/home');
+       message.success("登录成功")
+       const path : any = findFirstAccessibleMenu(res)
+      setTimeout(() => {
+      navigate(`/main${path}`, { replace: true }); // 加上 replace: true 避免产生多余的历史记录
+    }, 0)
+      // navigate('/main/home');
+      // navigate(path);
       return res;
     } catch (err) {
       setError(err as Error);
@@ -46,11 +54,11 @@ function useSysMenu(){
       try {
         const res = (await findAll()).data;
         // console.log(res);
-        if(res.code !== 200){
-          //  navigate('/sign-in');
-           const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.message);
-            message.warning(msg);
-        }
+        // if(res.code !== 200){
+        //   //  navigate('/sign-in');
+        //    const msg = HttpErrorHelper.getFriendlyMessage(res.code, res.message);
+        //     // message.warning(msg);
+        // }
         if(res.code === 200){
           setLoading(false);
         }
@@ -88,10 +96,10 @@ function useSysMenu(){
           setLoading(false);
             message.success(res.msg);
         }
-          if(res.code !== 200){
-          //  navigate('/sign-in');
-            message.error(res.msg);
-        }
+        //   if(res.code !== 200){
+        //   //  navigate('/sign-in');
+        //     message.error(res.msg);
+        // }
         return res;
       } catch (err) {
         setError(err as Error);

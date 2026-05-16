@@ -4,10 +4,6 @@ import { SIGN_IN_CONST_TOKEN } from "@/const/SignInConst";
 import { SYSTEM_MENU_BAR_CONST_KEY } from "@/const/SiderBarConst";
 import LazyLoad from "@/routes/LazyLoad";
 
-const MainIndexLayout = <LazyLoad 
-    loader={()=>import("@/components/layout/MainIndexLayout.tsx")}
-/>;
-
 const MainLayoutWrapper = () => {
   const token = cacheSession.getCache(SIGN_IN_CONST_TOKEN);
   const siderBars = cacheSession.getCache(SYSTEM_MENU_BAR_CONST_KEY);
@@ -22,7 +18,7 @@ const MainLayoutWrapper = () => {
     return <div style={{ textAlign: 'center', padding: 100 }}>菜单加载中，请稍候...</div>;
   }
 
-  return MainIndexLayout;
+  return <LazyLoad loader={() => import("@/components/layout/MainIndexLayout.tsx")} />;
 };
 
 export default MainLayoutWrapper;

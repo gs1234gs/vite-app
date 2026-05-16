@@ -75,7 +75,7 @@ const techGroups = [
       {
         name: 'Java',
         icon: <JavaOutlined />,
-        desc: '系统后端基于 Java 17+ 构建，利用其稳定性、高性能与丰富生态支撑高并发电商场景。',
+        desc: '系统后端基于 Java 21+ 构建，利用其稳定性、高性能与丰富生态支撑高并发电商场景。',
       },
       {
         name: 'Spring Boot',
@@ -358,7 +358,7 @@ const SystemIntro: React.FC = () => {
 
           {/* ✅ 使用 Typography.Text，不再导入 AntdText */}
           <Paragraph className={styles.paragraph}>
-            基于 <Text strong>Java 17 + Spring Cloud 微服务架构</Text> 与深度学习推荐算法的现代化电商平台，
+            基于 <Text strong>Java 21 + Spring Cloud 微服务架构</Text> 与深度学习推荐算法的现代化电商平台，
             后端采用响应式编程（WebFlux + R2DBC）提升吞吐量，集成商品管理、订单支付、库存调度、
             用户画像与智能推荐等核心功能，为企业提供高并发、高可用、高扩展的一站式电商解决方案。
           </Paragraph>
